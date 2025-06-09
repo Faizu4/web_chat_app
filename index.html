@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SIGN UP</title>
+<style>
+  html, body {
+    height: 100%;
+    padding: 0;
+    margin: 0;
+  }
+  body {
+    text-align: center;
+    background-color: #0F1117;
+    margin: 40px;
+  }
+  #signup_heading {
+    padding: 25px 0 0 0;
+    color: #F5DEB3;
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+  }
+  .container {
+    background-color: #1A1C23;
+    border-radius: 0.3rem;
+    width: 100%;
+    min-height: 60%;
+    margin: 0 auto;
+    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.3);
+  }
+  input {
+    background-color: #1A1C23;
+    border-radius: 0.3rem;
+    color: #CCCCCC;
+    border: 1px solid #D4AF37;
+    padding: 0.7rem;
+    margin: 5px;
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  input:focus {
+    outline: none;
+    border: 1px solid #FFD700;
+  }
+  button {
+    font-family: 'Playfair Display', serif;
+    background-color: #1A1C23;
+    width: 76%;
+    border-color: none;
+    color: #FFD700;
+    border-radius: 0.3rem;
+    border: 1px solid #2A2C33;
+    padding: 0.7rem;
+    margin: 5px;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #2A2C33;
+  }
+  #signin_link {
+    color: #FFD700;
+    text-decoration: none;
+  }
+  p {
+    display: inline-block;
+    color: #AAAAAA;
+  }
+  #signin_link, p {
+    margin-top: 10px;
+    font-size: 10px;
+  }
+  .error-message {
+    color: red !important;
+    font-size: 12px;
+    margin: 5px 0;
+  }
+</style>
+</head>
+<body>
+
+  <div class="container">
+    <h2 id="signup_heading">SIGN UP</h2>
+    <input id="name" placeholder="Name" type="text" maxlength="30">
+    <input id="email" placeholder="Email" type="email" maxlength="30">
+    <input id="pass" placeholder="Password" type="password" maxlength="30">
+    <input id="confirm_pass" placeholder="Confirm Password" type="password" maxlength="30">
+    <button id="signup_button">SIGN UP</button>
+    <p>Already have an account?</p>
+    <a href="." id="signin_link">Sign In</a>
+  </div>
+</body>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+  //getting elements
+  let name = document.getElementById("name")
+  let email = document.getElementById("email")
+  let pass = document.getElementById("pass")
+  let confirm_pass = document.getElementById("confirm_pass")
+  let signup_button = document.getElementById("signup_button")
+  let error = null;
+
+  function removeError(field) {
+    const next = field.nextElementSibling;
+    if (next && next.classList && next.classList.contains("error-message")) {
+      next.remove();
+    }
+  }
+
+  function showError(field, message) {
+    removeError(field)
+    const error = document.createElement("p")
+    error.innerHTML = message
+    error.style.color = "red";
+    error.className = "error-message";
+
+    field.parentNode.insertBefore(error, field.nextElementSibling);
+    field.style.border = "1px solid red"
+    field.focus();
+  }
+  //signup button event
+  signup_button.addEventListener("click", (event) => {
+    event.preventDefault()
+
+    [name, email, pass, confirm_pass].forEach(input => {
+      input.style.border = "1px solid #D4AF37";
+      removeError(input)
+    })
+
+    if (name.value.trim() === "") {
+      showError(name, "Enter your name")
+    }
+
+    if (email.value.trim() === "") {
+      showError(email, "Enter your email")
+    }
+
+    if (pass.value.trim() === "") {
+      showError(pass, "Enter your password")
+
+    } else if (pass.value.length < 8) {
+      showError(pass, "Password must have 8 characters")
+    }
+    if (confirm_pass.value.trim() === "") {
+      showError(confirm_pass, "Confirm your password")
+    } else if (pass.value.trim() != confirm_pass.value.trim()) {
+      showError(confirm_pass, "Your password isn't matching")
+    }
+
+  })
+  })
+</script>
+</html>
