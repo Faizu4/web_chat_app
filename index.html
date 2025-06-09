@@ -120,7 +120,7 @@
     field.focus();
   }
   //signup button event
-  signup_button.addEventListener("click", (event) => {
+  signup_button.addEventListener("click", async (event) => {
     event.preventDefault()
 
     [name, email, pass, confirm_pass].forEach(input => {
@@ -128,26 +128,82 @@
       removeError(input)
     })
 
+    // Client-side validation
+    let hasErrors = false;
+
     if (name.value.trim() === "") {
       showError(name, "Enter your name")
+      hasErrors = true;
     }
 
     if (email.value.trim() === "") {
       showError(email, "Enter your email")
+      hasErrors = true;
     }
 
     if (pass.value.trim() === "") {
       showError(pass, "Enter your password")
-
+      hasErrors = true;
     } else if (pass.value.length < 8) {
       showError(pass, "Password must have 8 characters")
+      hasErrors = true;
     }
+    
     if (confirm_pass.value.trim() === "") {
       showError(confirm_pass, "Confirm your password")
+      hasErrors = true;
     } else if (pass.value.trim() != confirm_pass.value.trim()) {
       showError(confirm_pass, "Your password isn't matching")
+      hasErrors = true;
     }
 
+    if (hasErrors) return;
+
+    // Send data to server
+    try {
+      signup_button.textContent = "SIGNING UP...";
+      signup_button.disabled = true;
+
+      const response = await fetch('/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: name.value.trim(),
+          email: email.value.trim(),
+          password: pass.value.trim(),
+          confirm_password: confirm_pass.value.trim()
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        alert("Account created successfully!");
+        // Clear form
+        name.value = "";
+        email.value = "";
+        pass.value = "";
+        confirm_pass.value = "";
+      } else {
+        // Show server error
+        if (result.detail.includes("Email")) {
+          showError(email, result.detail);
+        } else if (result.detail.includes("Password")) {
+          showError(pass, result.detail);
+        } else if (result.detail.includes("Name")) {
+          showError(name, result.detail);
+        } else {
+          alert("Error: " + result.detail);
+        }
+      }
+    } catch (error) {
+      alert("Network error. Please try again.");
+    } finally {
+      signup_button.textContent = "SIGN UP";
+      signup_button.disabled = false;
+    }
   })
   })
 </script>
