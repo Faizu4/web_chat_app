@@ -180,11 +180,14 @@
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;
-    justify-content: flex-end;
-    overflow-y: auto;
+    justify-content: flex-start;
+    overflow-y: scroll;
+    overflow-x: hidden;
     padding: 10px;
     margin-bottom: 60px;
-    max-height: 65vh;
+    height: calc(100vh - 140px);
+    min-height: 300px;
+    -webkit-overflow-scrolling: touch;
   }
   .chat-users {
     padding: 8px 12px;
@@ -425,13 +428,22 @@
     }).then(res => res.json())
     .then(data => {
       console.log("data", data.messages)
-      data.messages.forEach(messageObj => {
-        if (messageObj.type == "media") {
-          appendMedia(messageObj.sender, messageObj.message, messageObj.timestamp)
-        } else {
-        appendMessages(messageObj.sender, messageObj.message, messageObj.timestamp)
+      if (data.messages && Array.isArray(data.messages)) {
+        data.messages.forEach(messageObj => {
+          if (messageObj.type == "media") {
+            appendMedia(messageObj.sender, messageObj.message, messageObj.timestamp)
+          } else {
+            appendMessages(messageObj.sender, messageObj.message, messageObj.timestamp)
+          }
+        })
+      }
+      // Scroll to bottom after loading messages
+      setTimeout(() => {
+        const chatContainer = document.getElementById("chat-messages")
+        if (chatContainer) {
+          chatContainer.scrollTop = chatContainer.scrollHeight
         }
-      })
+      }, 100)
     }).catch(error => console.log(`error ${error}`))
     try {
       connectSocket(username, friendUsernameFromURL) }
@@ -599,7 +611,11 @@
     messageDiv.appendChild(timeLabel)
     outerDiv.appendChild(messageDiv)
     chatMessagesContainer.appendChild(outerDiv)
-    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
+    
+    // Force scroll to bottom with a small delay
+    setTimeout(() => {
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
+    }, 10)
   }
 
   function appendMedia(sender, base64, time=null) {
@@ -639,7 +655,11 @@
       outerDiv.appendChild(timeLabel)
     }
     chatMessagesContainer.appendChild(outerDiv)
-    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
+    
+    // Force scroll to bottom with a small delay
+    setTimeout(() => {
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
+    }, 10)
   }
 
   let pageContent = document.querySelector(".pageContent")
