@@ -443,33 +443,33 @@
     let friendUsername = e ? e.currentTarget.getAttribute("data-username") : friendUsernameFromURL
     history.pushState({}, "", `/${username}/${friendUsername}`)
       
-    backButton = document.createElement("div")
+    let backButton = document.createElement("div")
     backButton.textContent = "Back"
     backButton.style.cursor = "pointer"
     backButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="#FFD700" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
   <path d="M15 18l-6-6 6-6" />
 </svg>`
           
-    friendname = document.createElement("h1")
+    let friendname = document.createElement("h1")
     friendname.textContent = friendUsername
 
-    album = document.createElement("div")
+    let album = document.createElement("div")
     album.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="#FFD700" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
   <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
   <circle cx="8" cy="8" r="1.5" />
   <path d="M21 15l-5-5L10 16l-2-2-4 4" />
 </svg>`
 
-    hiddenFileInput = document.createElement("input")
+    let hiddenFileInput = document.createElement("input")
     hiddenFileInput.type = "file"
     hiddenFileInput.accept = "image/*,video/*"
     hiddenFileInput.style.display = "none"
 
-    messageBar = document.createElement("input")
+    let messageBar = document.createElement("input")
     messageBar.placeholder = "Type a message..." 
     messageBar.className = "message-bar"
 
-    sendButton = document.createElement("div")
+    let sendButton = document.createElement("div")
     sendButton.className = "send-button"
     sendButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="#FFD700" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
   <path d="M22 2L11 13" />
@@ -485,49 +485,9 @@
     chatMessages.style.marginBottom = "60px"
     chatMessages.style.maxHeight = "65vh"
     chatMessages.style.overflowY = "auto"
-    backButton.addEventListener("click", () => {
-      clearPage()
-      history.pushState({}, "", `/${username}`)
-      pageContent.innerHTML = pageContentHome
-      appendRecentChatUsers()
-  
-    })
-
-    sendButton.addEventListener("click", () => {
-      const msg = messageBar.value.trim()
-      if (msg && socket.readyState == WebSocket.OPEN) {
-        socket.send(JSON.stringify({sender: username, receiver: friendUsername, message: msg, type: "text"}))
-        messageBar.value = ""
-        
-      }
-    })
-    album.addEventListener("click", () => {
-      hiddenFileInput.click()
-    })
-    hiddenFileInput.addEventListener("change", async () => {
-      const file = hiddenFileInput.files[0]
-      if (!file) return;
-      const reader = new FileReader()
-      reader.onload = async () => {
-        const base64data = reader.result
-
-        appendMedia(username, base64data)
-
-        if (socket.readyState == WebSocket.OPEN) {
-          socket.send(JSON.stringify({
-            "sender": username,
-            "receiver": friendUsername,
-            "message": base64data,
-            "type": "media"
-          }))
-          
-        } //end of if
-      } //end of reader onload
-      reader.readAsDataURL(file)
-    }) //end of hiddenFileInputEvent
-    document.body.appendChild(hiddenFileInput)
-    
-    
+    chatMessages.style.display = "flex"
+    chatMessages.style.flexDirection = "column"
+    // First append all elements to the DOM
     pageContent.appendChild(upperNav)
     upperNav.appendChild(backButton)
     upperNav.appendChild(friendname)
@@ -536,6 +496,46 @@
     bottomNav.appendChild(messageBar)
     bottomNav.appendChild(sendButton)
     pageContent.appendChild(bottomNav)
+    document.body.appendChild(hiddenFileInput)
+
+    // Then add event listeners
+    backButton.addEventListener("click", () => {
+      clearPage()
+      history.pushState({}, "", `/${username}`)
+      pageContent.innerHTML = pageContentHome
+      appendRecentChatUsers()
+    })
+
+    sendButton.addEventListener("click", () => {
+      const msg = messageBar.value.trim()
+      if (msg && socket.readyState == WebSocket.OPEN) {
+        socket.send(JSON.stringify({sender: username, receiver: friendUsername, message: msg, type: "text"}))
+        messageBar.value = ""
+      }
+    })
+    
+    album.addEventListener("click", () => {
+      hiddenFileInput.click()
+    })
+    
+    hiddenFileInput.addEventListener("change", async () => {
+      const file = hiddenFileInput.files[0]
+      if (!file) return;
+      const reader = new FileReader()
+      reader.onload = async () => {
+        const base64data = reader.result
+        appendMedia(username, base64data)
+        if (socket.readyState == WebSocket.OPEN) {
+          socket.send(JSON.stringify({
+            "sender": username,
+            "receiver": friendUsername,
+            "message": base64data,
+            "type": "media"
+          }))
+        }
+      }
+      reader.readAsDataURL(file)
+    })
   }
 
   
