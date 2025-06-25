@@ -422,33 +422,6 @@
     }
   } 
   function renderChatInterface(e = null, friendUsernameFromURL = null) {
-    fetch(`/get-messages?friend=${encodeURIComponent(friendUsernameFromURL)}`, {
-      method: "GET",
-      headers: {"Content-Type": "application/json"}
-    }).then(res => res.json())
-    .then(data => {
-      console.log("data", data.messages)
-      if (data.messages && Array.isArray(data.messages)) {
-        data.messages.forEach(messageObj => {
-          if (messageObj.type == "media") {
-            appendMedia(messageObj.sender, messageObj.message, messageObj.timestamp)
-          } else {
-            appendMessages(messageObj.sender, messageObj.message, messageObj.timestamp)
-          }
-        })
-      }
-      // Scroll to bottom after loading messages
-      setTimeout(() => {
-        const chatContainer = document.getElementById("chat-messages")
-        if (chatContainer) {
-          chatContainer.scrollTop = chatContainer.scrollHeight
-        }
-      }, 100)
-    }).catch(error => console.log(`error ${error}`))
-    try {
-      connectSocket(username, friendUsernameFromURL) }
-    catch (error) {console.log(error)}
-    
     let upperNav = document.createElement("div")
     upperNav.className = "upperNav"
     
@@ -499,6 +472,7 @@
     chatMessages.style.overflowY = "auto"
     chatMessages.style.display = "flex"
     chatMessages.style.flexDirection = "column"
+    
     // First append all elements to the DOM
     pageContent.appendChild(upperNav)
     upperNav.appendChild(backButton)
@@ -509,6 +483,37 @@
     bottomNav.appendChild(sendButton)
     pageContent.appendChild(bottomNav)
     document.body.appendChild(hiddenFileInput)
+
+    // Now load messages after DOM is ready
+    fetch(`/get-messages?friend=${encodeURIComponent(friendUsernameFromURL)}`, {
+      method: "GET",
+      headers: {"Content-Type": "application/json"}
+    }).then(res => res.json())
+    .then(data => {
+      console.log("data", data)
+      if (data.success && data.messages && Array.isArray(data.messages)) {
+        data.messages.forEach(messageObj => {
+          if (messageObj.type == "media") {
+            appendMedia(messageObj.sender, messageObj.message, messageObj.timestamp)
+          } else {
+            appendMessages(messageObj.sender, messageObj.message, messageObj.timestamp)
+          }
+        })
+        // Scroll to bottom after loading messages
+        setTimeout(() => {
+          const chatContainer = document.getElementById("chat-messages")
+          if (chatContainer) {
+            chatContainer.scrollTop = chatContainer.scrollHeight
+          }
+        }, 100)
+      }
+    }).catch(error => console.log(`error ${error}`))
+    
+    try {
+      connectSocket(username, friendUsernameFromURL) 
+    } catch (error) {
+      console.log(error)
+    }
 
     // Then add event listeners
     backButton.addEventListener("click", () => {
