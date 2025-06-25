@@ -317,7 +317,8 @@
           
           chats.addEventListener("touchstart", () => {
         holdTimer = setTimeout(() => { 
-        if (document.querySelector(".chat-actions")) {pageContent.removeChild(chatActions)}
+        const existingChatActions = document.querySelector(".chat-actions")
+        if (existingChatActions) {pageContent.removeChild(existingChatActions)}
         chats.style.backgroundColor = "#1A1C23"
           topNav = document.querySelector(".top-nav")
           topNav.style.display = "none"
@@ -539,6 +540,12 @@
 
   
   function appendMessages(sender, message, time = null) {
+    const chatMessagesContainer = document.getElementById("chat-messages")
+    if (!chatMessagesContainer) {
+      console.error("Chat messages container not found")
+      return
+    }
+    
     const outerDiv = document.createElement("div")
     outerDiv.style.display = "flex"
     outerDiv.style.flexDirection = "column"
@@ -591,11 +598,17 @@
     }
     messageDiv.appendChild(timeLabel)
     outerDiv.appendChild(messageDiv)
-    chatMessages.appendChild(outerDiv)
-    chatMessages.scrollTop = chatMessages.scrollHeight
+    chatMessagesContainer.appendChild(outerDiv)
+    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
   }
 
   function appendMedia(sender, base64, time=null) {
+    const chatMessagesContainer = document.getElementById("chat-messages")
+    if (!chatMessagesContainer) {
+      console.error("Chat messages container not found")
+      return
+    }
+    
     const outerDiv = document.createElement("div")
     outerDiv.style.display = "flex"
     outerDiv.style.flexDirection = "column"
@@ -625,8 +638,8 @@
       timeLabel.style.color = "#ccc"
       outerDiv.appendChild(timeLabel)
     }
-    chatMessages.appendChild(outerDiv)
-    chatMessages.scrollTop = chatMessages.scrollHeight
+    chatMessagesContainer.appendChild(outerDiv)
+    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
   }
 
   let pageContent = document.querySelector(".pageContent")
