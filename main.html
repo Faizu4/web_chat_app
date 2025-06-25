@@ -89,7 +89,7 @@
   stroke: #FFD700;
   opacity: 1;
   }
-
+  
   .empty-state p {
   margin: 2px;
   }
@@ -198,7 +198,7 @@
     text-align: left;
     font-size: 18px;
     margin: 5px;
-
+    
   }
   .chat-actions {
     display: flex;
@@ -244,8 +244,8 @@
   </div>
   </div>
 
-
-
+  
+    
   <div class="bottom-nav">
     <div><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
   stroke-width="1.5" stroke="#FFD700" class="home-icon">
@@ -263,8 +263,8 @@
     d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.5 21a8.25 8.25 0 0 1 15 0" />
     </svg></div>
   </div>
-
-
+  
+    
 </body>
 <script>
   fetch("/cookies", {
@@ -288,7 +288,7 @@
     // /username/friend
     const [usernameFromURL, friendUsername] = segments;
     pageContent.innerHTML = ""
-
+    
     renderChatInterface(null, friendUsername);
   } else if (segments.length === 1) {
     pageContent.innerHTML = pageContentHome;
@@ -296,7 +296,7 @@
     })
   .catch(error => console.log(`error ${error}`))
   appendRecentChatUsers()
-
+  
   function appendRecentChatUsers() {
     fetch(`/get-recent-chats`, {
       method: "GET",
@@ -317,7 +317,7 @@
             clearPage()
             renderChatInterface(null, userObj[1])
           })
-
+          
           chats.addEventListener("touchstart", () => {
         holdTimer = setTimeout(() => { 
         const existingChatActions = document.querySelector(".chat-actions")
@@ -378,7 +378,7 @@
           chatActions.appendChild(deleteChat)
           chatActions.appendChild(removeChat)
           pageContent.prepend(chatActions)
-
+          
   }, 500) //end of setTimeout
           }) //end of chatsEvent hold
           chats.addEventListener("touchend", () => {
@@ -389,12 +389,12 @@
             clearTimeout(holdTimer)
             chats.style.backgroundColor = ""
           })
-
-
+          
+            
         }) //end of forEach
       } //end of if
     }).catch(error => console.log(`error ${error}`))
-
+    
   }
   function clearPage() {
     pageContent.innerHTML = ""
@@ -415,7 +415,7 @@
         appendMessages(sender, message)
       }
       console.log("recieved message", receivedMessage)
-
+      
     }
     socket.onclose = () => {
       console.log("socket closed")
@@ -448,20 +448,20 @@
     try {
       connectSocket(username, friendUsernameFromURL) }
     catch (error) {console.log(error)}
-
+    
     let upperNav = document.createElement("div")
     upperNav.className = "upperNav"
-
+    
     let friendUsername = e ? e.currentTarget.getAttribute("data-username") : friendUsernameFromURL
     history.pushState({}, "", `/${username}/${friendUsername}`)
-
+      
     let backButton = document.createElement("div")
     backButton.textContent = "Back"
     backButton.style.cursor = "pointer"
     backButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="#FFD700" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
   <path d="M15 18l-6-6 6-6" />
 </svg>`
-
+          
     let friendname = document.createElement("h1")
     friendname.textContent = friendUsername
 
@@ -525,11 +525,11 @@
         messageBar.value = ""
       }
     })
-
+    
     album.addEventListener("click", () => {
       hiddenFileInput.click()
     })
-
+    
     hiddenFileInput.addEventListener("change", async () => {
       const file = hiddenFileInput.files[0]
       if (!file) return;
@@ -550,14 +550,14 @@
     })
   }
 
-
+  
   function appendMessages(sender, message, time = null) {
     const chatMessagesContainer = document.getElementById("chat-messages")
     if (!chatMessagesContainer) {
       console.error("Chat messages container not found")
       return
     }
-
+    
     const outerDiv = document.createElement("div")
     outerDiv.style.display = "flex"
     outerDiv.style.flexDirection = "column"
@@ -574,9 +574,9 @@
     messageDiv.style.wordWrap = "break-word"
     messageDiv.style.fontFamily = "'Segoe UI', sans-serif"
     messageDiv.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.2)"
-
+    
     if (sender == username) {
-
+    
       messageDiv.style.backgroundColor = "#FFD700"
       messageDiv.style.color = "#0F1117"
       messageDiv.style.marginLeft = "auto"
@@ -611,12 +611,11 @@
     messageDiv.appendChild(timeLabel)
     outerDiv.appendChild(messageDiv)
     chatMessagesContainer.appendChild(outerDiv)
-
-    // Force scroll to bottom immediately and with a delay
-    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
+    
+    // Force scroll to bottom with a small delay
     setTimeout(() => {
       chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
-    }, 50)
+    }, 10)
   }
 
   function appendMedia(sender, base64, time=null) {
@@ -625,7 +624,7 @@
       console.error("Chat messages container not found")
       return
     }
-
+    
     const outerDiv = document.createElement("div")
     outerDiv.style.display = "flex"
     outerDiv.style.flexDirection = "column"
@@ -656,12 +655,11 @@
       outerDiv.appendChild(timeLabel)
     }
     chatMessagesContainer.appendChild(outerDiv)
-
-    // Force scroll to bottom immediately and with a delay
-    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
+    
+    // Force scroll to bottom with a small delay
     setTimeout(() => {
       chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
-    }, 50)
+    }, 10)
   }
 
   let pageContent = document.querySelector(".pageContent")
@@ -676,7 +674,7 @@
   let chatMessages = null;
   let topNav = document.querySelector(".top-nav")
   profileIcon.addEventListener("click", () => {
-
+    
     page = "profile"
     pageContent.innerHTML = ""
     clearPage()
@@ -709,7 +707,7 @@
     let signout = document.createElement("button")
     signout.textContent = "Sign Out"
     signout.style.width = "50%"
-
+    
     signout.addEventListener("click", () => {
     fetch("/signout", {
       method: "GET",
@@ -733,7 +731,7 @@
     appendRecentChatUsers()
 
     let notificationIcon = document.querySelector(".notification-icon")
-
+            
     notificationIcon.addEventListener("click", () => {
       pageContent.innerHTML = ""
 
@@ -751,7 +749,7 @@
         clearPage()
         pageContent.innerHTML = pageContentHome
         appendRecentChatUsers()
-
+        
       }) //end of backEvent
       pageContent.appendChild(back)
     }) //end of notificationIcon Event
@@ -767,7 +765,7 @@
     pageContent.appendChild(searchBar)
       pageContent.appendChild(userDiv)
     pageContent.appendChild(friendsDiv)
-
+    
     fetch("/friends", {
       method: "GET",
       headers: {"Content-Type": "application/json"}
@@ -776,7 +774,7 @@
       console.log(data)
       userDiv.innerHTML = ""
       data.friends.forEach(userObj => {
-
+        
         let userItem = document.createElement("div")
         userItem.className = "user-item"
         let nameSpan = document.createElement("span")
@@ -806,8 +804,8 @@
         iconWrapper.appendChild(icon)
         pageContent.appendChild(userItem)
         friendsDiv.appendChild(userItem)
-
-
+        
+        
 
         chat_icon.addEventListener("click", (e) => {
           fetch(`/update-recent-chats?friend=${encodeURIComponent(userObj.friend)}`, {
@@ -817,7 +815,7 @@
           .then(data => {
             console.log("recent chats", data)
           }).catch(error => console.log("error", error))
-
+          
           clearPage()
           renderChatInterface(e, userObj.friend)
         })
@@ -850,7 +848,7 @@
         userDiv.innerHTML = ""
         return
       }
-
+      
       fetch(`/search?query=${encodeURIComponent(searchQuery)}`, {
         method: "GET",
         headers: {"Content-Type": "application/json"}
@@ -860,7 +858,7 @@
             console.log("status_code", res.status)
             console.log("status_text", res.statusText)
             console.log("res", res)
-
+                        
             throw new Error("Network response was not ok")
           }
           return res.json()
@@ -870,11 +868,11 @@
             console.log(data)
           }
           console.log("data", data)
-
+          
           data.friends.forEach(userObj => {
           let userItem = document.createElement("div")
           userItem.className = "user-item"
-
+      
           let nameSpan = document.createElement("span")
           nameSpan.textContent = userObj.friend
           let icon = document.createElementNS("http://www.w3.org/2000/svg", "svg")
@@ -905,7 +903,7 @@
             icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2">
   <path d="M5 13l4 4L19 7"/>
 </svg>`
-
+            
           } else if (userObj.status == "friend") {
             icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2">
   <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -977,12 +975,12 @@
       }) //end of data
       .catch(error => console.log(`error ${error}`)
             ) //end of catch
-
+    
     }) //end of searchBarEvent
 
   }) //end of friendsIconEvent
+  
 
-
-
+  
 </script>
 </html>
