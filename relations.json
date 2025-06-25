@@ -1,0 +1,20 @@
+[
+    {
+        "user1": "faizu",
+        "user2": "Neha",
+        "status": "friend",
+        "date": "24/06/2025"
+    },
+    {
+        "user1": "Sham",
+        "user2": "faizu",
+        "status": "friend",
+        "date": "23/06/2025"
+    },
+    {
+        "user1": "A",
+        "user2": "faizu",
+        "status": "friend",
+        "date": "25/06/2025"
+    }
+]

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SIGN IN</title>
+<style>
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  html, body {
+    height: 100%;
+    padding: 0;
+    margin: 0;
+  }
+  body {
+    text-align: center;
+    background-color: #0F1117;
+    margin: 40px;
+  }
+  #signup_heading {
+    padding: 25px 0 0 0;
+    color: #F5DEB3;
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+  }
+  .container {
+    background-color: #1A1C23;
+    border-radius: 0.3rem;
+    width: 100%;
+    min-height: 60%;
+    margin: 0 auto;
+    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.3);
+  }
+  input {
+    background-color: #1A1C23;
+    border-radius: 0.3rem;
+    color: #CCCCCC;
+    border: 1px solid #D4AF37;
+    padding: 0.7rem;
+    margin: 5px;
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  input:focus {
+    outline: none;
+    border: 1px solid #FFD700;
+  }
+  button {
+    font-family: 'Playfair Display', serif;
+    background-color: #1A1C23;
+    width: 76%;
+    border-color: none;
+    color: #FFD700;
+    border-radius: 0.3rem;
+    border: 1px solid #2A2C33;
+    padding: 0.7rem;
+    margin: 5px;
+    cursor: pointer;
+  }
+  button:hover {
+    background-color: #2A2C33;
+  }
+  #pass-forgot-link, a {
+    color: #FFD700;
+    text-decoration: none;
+  }
+  p {
+    display: inline-block;
+    color: #AAAAAA;
+  }
+  #pass-forgot-link, p, a {
+    margin-top: 10px;
+    display: block;
+    font-size: 14px;
+  }
+  .error-message {
+    color: red !important;
+    font-size: 12px;
+    margin: 5px 0;
+    display: block;
+    position: relative;
+    text-align: left;
+    left: 11%;
+    margin: 0;
+  }
+</style>
+</head>
+<body>
+  
+  <div class="container">
+    <h2 id="signup_heading">SIGN IN</h2>
+    <input id="name" placeholder="Name" type="text" maxlength="30">
+    <input id="email" placeholder="Email" type="email" maxlength="30">
+    <input id="pass" placeholder="Password" type="password" maxlength="30">
+    <button id="signin_button">SIGN IN</button>
+    <a href="/signup" id="sign-up-link">Don't have an account?</a>
+    <a id="pass-forgot-link" href=".">Forgot password?</a>
+    
+  </div>
+</body>
+<script>
+  //document.addEventListener("DOMContentLoaded", () => {
+  fetch("/cookies", {
+    method: "GET",
+    headers: {"Content-Type": "application/json"},
+  }).then(res => res.json()).then(data => {
+    if (data.success) {
+      window.location.href = `/${data.username}`
+    }
+  })
+  
+  //getting elements
+  let name = document.getElementById("name")
+  let email = document.getElementById("email")
+  let pass = document.getElementById("pass")
+
+  let signin_button = document.getElementById("signin_button")
+  let error = null;
+  
+  function removeError(field) {
+    const next = field.nextElementSibling;
+    if (next && next.classList && next.classList.contains("error-message")) {
+      next.remove();
+    }
+    field.style.removeProperty("border")
+  }
+  
+  function showError(field, message) {
+    removeError(field)
+    const error = document.createElement("p")
+    error.innerHTML = message
+    error.className = "error-message";
+
+    field.parentNode.insertBefore(error, field.nextElementSibling);
+    field.style.border = "1px solid red"
+    field.focus();
+  }
+  //forcing email to be lowercase
+  email.addEventListener("input", () => {email.value = email.value.toLowerCase()})
+  //signin button event
+  signin_button.addEventListener("click", (event) => {
+
+    [name, email, pass].forEach(input => {
+      removeError(input)
+    })
+    
+    if (name.value.trim() === "") {
+      showError(name, "Enter your name")
+    }
+    if (email.value.trim() === "") {
+      showError(email, "Enter your email")
+    }
+    
+    if (pass.value.trim() === "") {
+      showError(pass, "Enter your password")
+    
+    } else if (pass.value.length < 8) {
+      showError(pass, "Password must have 8 characters")
+    }
+   //checking errors
+   if (name.value.trim() == "" || email.value.trim() == "" || pass.value.trim() == "" || pass.value.length < 8) {return}
+
+    fetch("/signin", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        username: name.value.trim(),
+        email: email.value.trim(),
+        password: pass.value.trim()
+      })
+    }).then(res => {
+      if (res.redirected) {
+        window.location.href = res.url
+        return
+      } else {
+        return res.json()
+      }
+    })
+    .then(data => {
+      if (data.message == "User and Email Not found") {
+        showError(name, "Name is invalid")
+        showError(email, "Email is invalid")
+        return
+      } else if (data.message == "Username is invalid") {
+        return showError(name, "Username is invalid")
+      } else if (data.message == "Email is invalid") {
+        return showError(email, "Email already exists")
+      } else if (data.message == "Password is incorrect")
+        return showError(pass, "Password is incorrect")
+      }) //end of /signin fetch
+    })  //end of /signin button event
+//  }) //end of DOMContentLoaded
+  
+</script>
+</html>

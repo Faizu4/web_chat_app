@@ -1,0 +1,950 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zyro</title>
+<style>
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  *:focus {
+    outline: none;
+  }
+  body {
+    height: 100%;
+    overflow: hidden;
+    background-color: #0F1117;
+    margin: 10px;
+    padding: 0px;
+    display: flex;
+    flex-direction: column;
+  }
+  h1 {
+    display: block;
+    color: #F5DEB3;
+    font-family: 'Playfair Display', serif;
+    font-size: 30px;
+    text-align: left;
+  }
+  button {
+    font-family: 'Playfair Display', serif;
+    background-color: #1A1C23;
+    width: 76%;
+    border-color: none;
+    color: #FFD700;
+    border-radius: 0.3rem;
+    border: 1px solid #2A2C33;
+    padding: 0.7rem;
+    margin: 5px;
+    cursor: pointer;
+  }
+  .notification-icon, .home-icon, .friends-icon, .hamburger-icon, .profile-icon {
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+  }
+  .bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background-color: #1A1C23;
+    padding: 10px 0;
+    margin: 0px;
+  }
+  .top-nav {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    background-color: #1A1C23;
+  }
+  .top-nav h1 {
+    margin: 0;
+    flex-grow: 1;
+  }
+  .top-nav-icons {
+    display: flex;
+    gap: 15px;
+  }
+  .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 80px;
+  color: #999;
+  font-family: 'Segoe UI', sans-serif;
+  opacity: 0.8;
+  text-align: center;
+  }
+
+  .empty-state svg {
+  margin-bottom: 20px;
+  stroke: #FFD700;
+  opacity: 1;
+  }
+  
+  .empty-state p {
+  margin: 2px;
+  }
+  input {
+    background-color: #1A1C23;
+    border-radius: 0.3rem;
+    color: #CCCCCC;
+    border: 1px solid #D4AF37;
+    padding: 0.7rem;
+    margin: 5px;
+    width: 92.5%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  input:focus {
+    outline: none;
+    border: 1px solid #FFD700;
+  }
+  .pageContent {
+    height: calc(100vh - 20px);
+    background-color: #0F1117;
+  }
+  .user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid #333;
+    font-family: 'Playfair Display', serif;
+    color: #FFD700;
+  }
+  .user-item svg {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .user-list {
+    margin-top: 10px;
+  }
+  .send-friend-req {
+    margin-left: 10px;
+  }
+  .message-bar {
+    flex-grow: 1;
+
+    width: 80%;
+    border-radius: 0.3rem;
+    margin-right: 10px;
+    color: #CCCCCC;
+    background-color: #1A1C23;
+    border: 1px solid #D4AF37;
+  }
+  .bottom-chat-nav {
+    flex: 0 0 auto;
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    padding: 10px;
+    background-color: #1A1C23;
+  }
+  .bottom-chat-nav svg {
+    width: 35px;
+    height: 35px;
+    margin: 5px;
+  }
+  .send-button {
+    width: 20%;
+    cursor: pointer;
+  }
+  .upperNav {
+    display: flex;
+    background-color: #1A1C23;
+    align-item: center;
+    gap: 10px;
+    padding: 10px;
+  }
+  .upperNav h1, .upperNav svg {
+    font-size: 16px;
+  }
+  #chat-messages {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow-y: auto;
+    padding: 10px;
+    margin-bottom: 60px;
+    max-height: 65vh;
+  }
+  .chat-users {
+    padding: 8px 12px;
+    border-bottom: 1px solid #333;
+    font-family: 'Playfair Display', serif;
+    color: #FFD700;
+    cursor: pointer;
+    text-align: left;
+    font-size: 18px;
+    margin: 5px;
+    
+  }
+  .chat-actions {
+    display: flex;
+    align-items: right;
+    background-color: #1A1C23;
+    padding: 5px;
+    margin: 0px;  
+  }
+  .chat-actions svg {
+    width: 24px;
+    height: 24px;
+    margin: 5px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div class="pageContent">
+  <div class="top-nav">
+    <h1>{{username}}</h1>
+    <div class="top-nav-icons">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="#0F1117" viewBox="0 0 24 24" stroke-width="1.5" stroke="#FFD700" class="notification-icon">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+      </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+  stroke-width="1.5" stroke="#FFD700" class="hamburger-icon">
+      <path stroke-linecap="round" stroke-linejoin="round"
+    d="M3.75 5.25h16.5M3.75 12h16.5M3.75 18.75h16.5" />
+      </svg>
+    </div>
+  </div>
+
+
+
+
+  <div id="empty-state" class="empty-state">
+    <svg width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    <path d="M8 10h8M8 14h6" />
+  </svg>
+  <p>No chats yet</p>
+  <p>Click on a friend to start chatting</p>
+  </div>
+  </div>
+
+  
+    
+  <div class="bottom-nav">
+    <div><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+  stroke-width="1.5" stroke="#FFD700" class="home-icon">
+  <path stroke-linecap="round" stroke-linejoin="round"
+    d="M3 9.75L12 3l9 6.75M4.5 10.5v9.75h15V10.5" />
+    </svg></div>
+    <div><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+  stroke-width="1.5" stroke="#FFD700" class="friends-icon">
+  <path stroke-linecap="round" stroke-linejoin="round"
+    d="M17 20v-2a4 4 0 0 0-3-3.87M7 20v-2a4 4 0 0 1 3-3.87M12 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM20 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM4 8a2 2 0 1 0 4 0 2 2 0 0 0-4 0z" />
+    </svg></div>
+    <div><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+  stroke-width="1.5" stroke="#FFD700" class="profile-icon">
+  <path stroke-linecap="round" stroke-linejoin="round"
+    d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0zM4.5 21a8.25 8.25 0 0 1 15 0" />
+    </svg></div>
+  </div>
+  
+    
+</body>
+<script>
+  fetch("/cookies", {
+    method: "GET",
+    headers: {"Content-Type": "application/json"},
+  })
+    .then(res => res.json())
+    .then((data) => {
+      if (!data.success) {
+        data = window.location.href = "/signup"
+      }
+      username = data.username
+      email = data.email
+
+
+      const path = window.location.pathname;
+      const segments = path.split("/").filter(Boolean);
+
+
+  if (segments.length === 2) {
+    // /username/friend
+    const [usernameFromURL, friendUsername] = segments;
+    pageContent.innerHTML = ""
+    
+    renderChatInterface(null, friendUsername);
+  } else if (segments.length === 1) {
+    pageContent.innerHTML = pageContentHome;
+  }
+    })
+  .catch(error => console.log(`error ${error}`))
+  appendRecentChatUsers()
+  
+  function appendRecentChatUsers() {
+    fetch(`/get-recent-chats`, {
+      method: "GET",
+      headers: {"Content-Type": "application/json"}
+    }).then(res => res.json())
+    .then(data => {
+      if (data.recent_chats.length > 0) {
+        pageContent.removeChild(document.getElementById("empty-state"))
+        data.recent_chats.forEach(userObj => {
+          let chats = document.createElement("div")
+          chats.className = "chat-users"
+          chats.textContent = userObj[1]
+          pageContent.appendChild(chats)
+          chats.addEventListener("click", () => {
+            clearPage()
+            renderChatInterface(null, userObj[1])
+          })
+          
+          chats.addEventListener("touchstart", () => {
+        holdTimer = setTimeout(() => { 
+        if (document.querySelector(".chat-actions")) {pageContent.removeChild(chatActions)}
+        chats.style.backgroundColor = "#1A1C23"
+          topNav = document.querySelector(".top-nav")
+          topNav.style.display = "none"
+          chatActions = document.createElement("div")
+          chatActions.className = "chat-actions"
+          removeChat = document.createElement("svg")
+          removeChat.style.marginRight = ""
+          removeChat.style.fontSize = "40px"
+          removeChat.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+     fill="none" viewBox="0 0 24 24" stroke="#FFD700" stroke-width="1.5" 
+     stroke-linecap="round" stroke-linejoin="round">
+  <path d="M21 8v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8" />
+  <polyline points="3 6 12 13 21 6" />
+</svg>`
+          deleteChat = document.createElement("svg")
+         deleteChat.style.marginLeft = "auto"
+          deleteChat.style.fontSize = "40px"
+          deleteChat.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+     viewBox="0 0 24 24" stroke="#FFD700" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M3 6h18" />
+  <path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" />
+  <path d="M10 11v6" />
+  <path d="M14 11v6" />
+  <path d="M5 6l1-2h12l1 2" />
+</svg>`
+          backIcon = document.createElement("svg")
+          backIcon.style.fontSize = "40px"
+          backIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+     viewBox="0 0 24 24" stroke="#FFD700" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M15 18l-6-6 6-6" />
+</svg>`
+          friend = document.createElement("h1")
+          friend.textContent = userObj[1]
+          friend.style.fontSize = "20px"
+
+          backIcon.addEventListener("click", () => {
+            pageContent.removeChild(chatActions)
+            topNav.style.display = "flex"
+          })
+          removeChat.addEventListener("click", () => {
+            fetch("/remove-recent-chats", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({"friend": userObj[1]})
+            }).then(res => res.json()).then(data => {
+                if (data.success) {
+                  pageContent.removeChild(chats)
+                }
+            }) //end of data
+            .catch(error => console.log(error))
+          }) //end of removeChatEvent
+          chatActions.appendChild(backIcon)
+          chatActions.appendChild(friend)
+          chatActions.appendChild(deleteChat)
+          chatActions.appendChild(removeChat)
+          pageContent.prepend(chatActions)
+          
+  }, 500) //end of setTimeout
+          }) //end of chatsEvent hold
+          chats.addEventListener("touchend", () => {
+            clearTimeout(holdTimer)
+            chats.style.backgroundColor = ""
+          })
+          chats.addEventListener("touchmove", () => {
+            clearTimeout(holdTimer)
+            chats.style.backgroundColor = ""
+          })
+          
+            
+        }) //end of forEach
+      } //end of if
+    }).catch(error => console.log(`error ${error}`))
+    
+  }
+  function clearPage() {
+    pageContent.innerHTML = ""
+  }
+  function connectSocket(username, friendUsername) {
+    let protocol = location.protocol === "https:" ? "wss" : "ws"
+    socket = new WebSocket(`${protocol}://${location.host}/ws/${username}`)
+
+    socket.onopen = () => {
+      console.log("socket connected")
+    }
+    socket.onmessage = (event) => {
+      const receivedMessage = JSON.parse(event.data)
+      const { sender, receiver, message, type, timestamp } = receivedMessage
+      if (type == "media") {
+        appendMedia(sender, message, timestamp)
+      } else {
+        appendMessages(sender, message)
+      }
+      console.log("recieved message", receivedMessage)
+      
+    }
+    socket.onclose = () => {
+      console.log("socket closed")
+    }
+  } 
+  function renderChatInterface(e = null, friendUsernameFromURL = null) {
+    fetch(`/get-messages?friend=${encodeURIComponent(friendUsernameFromURL)}`, {
+      method: "GET",
+      headers: {"Content-Type": "application/json"}
+    }).then(res => res.json())
+    .then(data => {
+      console.log("data", data.messages)
+      data.messages.forEach(messageObj => {
+        if (messageObj.type == "media") {
+          appendMedia(messageObj.sender, messageObj.message, messageObj.timestamp)
+        } else {
+        appendMessages(messageObj.sender, messageObj.message, messageObj.timestamp)
+        }
+      })
+    }).catch(error => console.log(`error ${error}`))
+    try {
+      connectSocket(username, friendUsernameFromURL) }
+    catch (error) {console.log(error)}
+    
+    let upperNav = document.createElement("div")
+    upperNav.className = "upperNav"
+    
+    let friendUsername = e ? e.currentTarget.getAttribute("data-username") : friendUsernameFromURL
+    history.pushState({}, "", `/${username}/${friendUsername}`)
+      
+    backButton = document.createElement("div")
+    backButton.textContent = "Back"
+    backButton.style.cursor = "pointer"
+    backButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="#FFD700" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+  <path d="M15 18l-6-6 6-6" />
+</svg>`
+          
+    friendname = document.createElement("h1")
+    friendname.textContent = friendUsername
+
+    album = document.createElement("div")
+    album.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="#FFD700" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+  <circle cx="8" cy="8" r="1.5" />
+  <path d="M21 15l-5-5L10 16l-2-2-4 4" />
+</svg>`
+
+    hiddenFileInput = document.createElement("input")
+    hiddenFileInput.type = "file"
+    hiddenFileInput.accept = "image/*,video/*"
+    hiddenFileInput.style.display = "none"
+
+    messageBar = document.createElement("input")
+    messageBar.placeholder = "Type a message..." 
+    messageBar.className = "message-bar"
+
+    sendButton = document.createElement("div")
+    sendButton.className = "send-button"
+    sendButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="#FFD700" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+  <path d="M22 2L11 13" />
+  <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+</svg>`
+
+    bottomNav = document.createElement("div")
+    bottomNav.className = "bottom-chat-nav"
+
+    chatMessages = document.createElement("div")
+    chatMessages.id = "chat-messages"
+    chatMessages.style.padding = "10px" 
+    chatMessages.style.marginBottom = "60px"
+    chatMessages.style.maxHeight = "65vh"
+    chatMessages.style.overflowY = "auto"
+    backButton.addEventListener("click", () => {
+      clearPage()
+      history.pushState({}, "", `/${username}`)
+      pageContent.innerHTML = pageContentHome
+      appendRecentChatUsers()
+  
+    })
+
+    sendButton.addEventListener("click", () => {
+      const msg = messageBar.value.trim()
+      if (msg && socket.readyState == WebSocket.OPEN) {
+        socket.send(JSON.stringify({sender: username, receiver: friendUsername, message: msg, type: "text"}))
+        messageBar.value = ""
+        
+      }
+    })
+    album.addEventListener("click", () => {
+      hiddenFileInput.click()
+    })
+    hiddenFileInput.addEventListener("change", async () => {
+      const file = hiddenFileInput.files[0]
+      if (!file) return;
+      const reader = new FileReader()
+      reader.onload = async () => {
+        const base64data = reader.result
+
+        appendMedia(username, base64data)
+
+        if (socket.readyState == WebSocket.OPEN) {
+          socket.send(JSON.stringify({
+            "sender": username,
+            "receiver": friendUsername,
+            "message": base64data,
+            "type": "media"
+          }))
+          
+        } //end of if
+      } //end of reader onload
+      reader.readAsDataURL(file)
+    }) //end of hiddenFileInputEvent
+    document.body.appendChild(hiddenFileInput)
+    
+    
+    pageContent.appendChild(upperNav)
+    upperNav.appendChild(backButton)
+    upperNav.appendChild(friendname)
+    pageContent.appendChild(chatMessages)
+    bottomNav.appendChild(album)
+    bottomNav.appendChild(messageBar)
+    bottomNav.appendChild(sendButton)
+    pageContent.appendChild(bottomNav)
+  }
+
+  
+  function appendMessages(sender, message, time = null) {
+    const outerDiv = document.createElement("div")
+    outerDiv.style.display = "flex"
+    outerDiv.style.flexDirection = "column"
+    outerDiv.style.alignItems = sender === username ? "flex-end": "flex-start"
+    outerDiv.style.margin = "5px 10px"
+    const messageDiv = document.createElement("div")
+    messageDiv.textContent = message
+    messageDiv.style.maxWidth = "70%"
+    messageDiv.style.minWidth = "fit-content"
+    messageDiv.style.display = "inline-block"
+    messageDiv.style.margin = "8px"
+    messageDiv.style.padding = "10px 15px"
+    messageDiv.style.borderRadius = "16px"
+    messageDiv.style.wordWrap = "break-word"
+    messageDiv.style.fontFamily = "'Segoe UI', sans-serif"
+    messageDiv.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.2)"
+    
+    if (sender == username) {
+    
+      messageDiv.style.backgroundColor = "#FFD700"
+      messageDiv.style.color = "#0F1117"
+      messageDiv.style.marginLeft = "auto"
+      messageDiv.style.textAlign = "right"
+      messageDiv.style.borderBottomRightRadius = "0px"
+    } else {
+      messageDiv.style.backgroundColor = "#2A2C33"
+      messageDiv.style.color = "#FFF"
+      messageDiv.style.marginRight = "auto"
+      messageDiv.style.textAlign = "left"
+      messageDiv.style.borderBottomLeftRadius = "0px"
+    }
+
+    const timeLabel = document.createElement("small")
+    timeLabel.style.marginTop = "3px"
+    timeLabel.style.opacity = "0.6"
+    timeLabel.style.fontSize = "12px"
+    timeLabel.style.position = "absolute"
+    timeLabel.style.bottom = "3px"
+    timeLabel.style.fontFamily = "monospace"
+    timeLabel.style.color = sender === username ? "#0F1117" : "#ccc"
+    timeLabel.style.right = sender === username ? "8px" : "auto"
+    timeLabel.style.left = sender !== username ? "8px" : "auto"
+    if (time) {
+      const dateObj = new Date(time)
+      const formattedTime = dateObj.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+      })
+      timeLabel.textContent = formattedTime
+    }
+    messageDiv.appendChild(timeLabel)
+    outerDiv.appendChild(messageDiv)
+    chatMessages.appendChild(outerDiv)
+    chatMessages.scrollTop = chatMessages.scrollHeight
+  }
+
+  function appendMedia(sender, base64, time=null) {
+    const outerDiv = document.createElement("div")
+    outerDiv.style.display = "flex"
+    outerDiv.style.flexDirection = "column"
+    outerDiv.style.alignItems = sender === username ? "flex-end": "flex-start"
+    outerDiv.style.margin = "5px 10px"
+
+    const isVideo = base64.startsWith("data:video/")
+    let mediaElement = null
+
+    if (isVideo) {
+      mediaElement = document.createElement("video")
+      mediaElement.controls = true
+    } else {
+      mediaElement = document.createElement("img")
+    }
+    mediaElement.src = base64
+    mediaElement.style.maxWidth = "70%"
+    mediaElement.style.margin = "5px"
+    outerDiv.appendChild(mediaElement)
+
+    if (time) {
+      const timeLabel = document.createElement("small")
+      timeLabel.textContent = new Date(time).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})
+      timeLabel.style.fontSize = "12px"
+      timeLabel.style.opacity = "0.6"
+      timeLabel.style.margin = "2px"
+      timeLabel.style.color = "#ccc"
+      outerDiv.appendChild(timeLabel)
+    }
+    chatMessages.appendChild(outerDiv)
+    chatMessages.scrollTop = chatMessages.scrollHeight
+  }
+
+  let pageContent = document.querySelector(".pageContent")
+  let profileIcon = document.querySelector(".profile-icon")
+  let homeIcon = document.querySelector(".home-icon")
+  let friendsIcon = document.querySelector(".friends-icon")
+  let pageContentHome = pageContent.innerHTML
+  let pageContentFriends = ""
+  let pageContentProfile = ""
+  let page = "home"
+  let socket = null;
+  let chatMessages = null;
+  let topNav = document.querySelector(".top-nav")
+  profileIcon.addEventListener("click", () => {
+    
+    page = "profile"
+    pageContent.innerHTML = ""
+    clearPage()
+    pageContent.innerHTML = pageContentProfile
+    //username
+    let username = document.createElement("h1")
+    username.textContent = "{{username}}"
+    username.style.fontSize = "20px"
+    username.style.border = "1px solid #333"
+    username.style.padding = "10px"
+    //email
+    let emailelement = document.createElement("h1")
+    emailelement.textContent = email
+    emailelement.style.fontSize = "15px"
+    emailelement.style.border = "1px solid #333"
+    emailelement.style.padding = "10px"
+
+    let profilepic = document.createElement("div")
+    profilepic.style.border = "6px solid #FFD700"
+    profilepic.style.borderRadius = "50%"
+    profilepic.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" fill="none" viewBox="0 0 24 24" stroke="#FFD700" stroke-width="1.5">
+  <circle cx="12" cy="8" r="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`
+
+    let profileWrapper = document.createElement("div")
+    profileWrapper.style.display = "flex"
+    profileWrapper.style.justifyContent = "center"
+    profileWrapper.style.alignItems = "center"
+    let signout = document.createElement("button")
+    signout.textContent = "Sign Out"
+    signout.style.width = "50%"
+    
+    signout.addEventListener("click", () => {
+    fetch("/signout", {
+      method: "GET",
+      headers: {"Content-Type": "application/json"}
+    }).then(() => {
+        window.location.href = "/signin";
+      })
+    })  // end of signout event
+    profileWrapper.appendChild(profilepic)
+    pageContent.appendChild(profileWrapper)
+    pageContent.appendChild(username)
+    pageContent.appendChild(emailelement)
+    pageContent.appendChild(signout)
+
+  }) // end of profileIconEvent
+
+  homeIcon.addEventListener("click", () => {
+    page = "home"
+    clearPage()
+    pageContent.innerHTML = pageContentHome
+    appendRecentChatUsers()
+
+    let notificationIcon = document.querySelector(".notification-icon")
+            
+    notificationIcon.addEventListener("click", () => {
+      pageContent.innerHTML = ""
+
+      fetch("/notifications", {
+        method: "GET",
+        headers: {"Content-Type": "application/json"}
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log(data)
+      })
+      let back = document.createElement("button")
+      back.textContent = "Back"
+      back.addEventListener("click", () => {
+        clearPage()
+        pageContent.innerHTML = pageContentHome
+        appendRecentChatUsers()
+        
+      }) //end of backEvent
+      pageContent.appendChild(back)
+    }) //end of notificationIcon Event
+  }) //end of homeIconEvent
+
+  friendsIcon.addEventListener("click", () => {
+    page = "friends"
+    pageContent.innerHTML = ""
+    let searchBar = document.createElement("input")
+    searchBar.placeholder = "Search for friends"
+    let userDiv = document.createElement("div")
+    let friendsDiv = document.createElement("div")
+    pageContent.appendChild(searchBar)
+      pageContent.appendChild(userDiv)
+    pageContent.appendChild(friendsDiv)
+    
+    fetch("/friends", {
+      method: "GET",
+      headers: {"Content-Type": "application/json"}
+    }).then(res => res.json())
+    .then(data => {
+      console.log(data)
+      userDiv.innerHTML = ""
+      data.friends.forEach(userObj => {
+        
+        let userItem = document.createElement("div")
+        userItem.className = "user-item"
+        let nameSpan = document.createElement("span")
+        nameSpan.textContent = userObj.friend
+        let icon = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        icon.setAttribute("data-username", userObj.friend)
+        icon.setAttribute("viewBox", "0 0 24 24")
+        icon.setAttribute("fill", "none")
+        icon.setAttribute("stroke", "#FFD700")
+        icon.setAttribute("stroke-width", "2")
+        icon.innerHTML = `<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>`
+        chat_icon = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+        chat_icon.setAttribute("viewBox", "0 0 24 24")
+        chat_icon.setAttribute("fill", "none")
+        chat_icon.setAttribute("stroke", "#FFD700")
+        chat_icon.setAttribute("stroke-width", "2")
+        chat_icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+</svg>`
+        chat_icon.setAttribute("data-username", userObj.friend)
+        iconWrapper = document.createElement("div")
+        iconWrapper.style.display = "flex"
+        iconWrapper.style.gap = "15px"
+        userItem.appendChild(nameSpan)
+        userItem.appendChild(iconWrapper)
+        iconWrapper.appendChild(chat_icon)
+        iconWrapper.appendChild(icon)
+        pageContent.appendChild(userItem)
+        friendsDiv.appendChild(userItem)
+        
+        
+
+        chat_icon.addEventListener("click", (e) => {
+          fetch(`/update-recent-chats?friend=${encodeURIComponent(userObj.friend)}`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"}
+          }).then(res => res.json())
+          .then(data => {
+            console.log("recent chats", data)
+          }).catch(error => console.log("error", error))
+          
+          clearPage()
+          renderChatInterface(e, userObj.friend)
+        })
+        icon.addEventListener("click", (e) => {
+          usernameClicked = e.currentTarget.getAttribute("data-username")
+            fetch("/unfriend", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({friend: usernameClicked})
+            }).then(res => res.json())
+          .then(data => {
+            console.log(data)
+            if (data.success) {
+              icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>`
+            }
+          }) //end of data
+          .catch(error => console.log(`error ${error}`)
+                )
+        }) //friendsDiv.appendChild(userItem)
+      })
+    }) // end of data
+    .catch(error => console.log(error))
+    searchBar.addEventListener("input", () => {
+      const searchQuery = searchBar.value.trim()
+      if (searchQuery.length > 0) {
+        friendsDiv.style.display = "none"
+      } else {
+        friendsDiv.style.display = "block"
+        userDiv.innerHTML = ""
+        return
+      }
+      
+      fetch(`/search?query=${encodeURIComponent(searchQuery)}`, {
+        method: "GET",
+        headers: {"Content-Type": "application/json"}
+      }) //end of fetch
+        .then(res => {
+          if (!res.ok) {
+            console.log("status_code", res.status)
+            console.log("status_text", res.statusText)
+            console.log("res", res)
+                        
+            throw new Error("Network response was not ok")
+          }
+          return res.json()
+        })
+        .then(data => {
+          if (!data.success) {
+            console.log(data)
+          }
+          console.log("data", data)
+          
+          data.friends.forEach(userObj => {
+          let userItem = document.createElement("div")
+          userItem.className = "user-item"
+      
+          let nameSpan = document.createElement("span")
+          nameSpan.textContent = userObj.friend
+          let icon = document.createElementNS("http://www.w3.org/2000/svg", "svg")
+          icon.setAttribute("data-username", userObj.friend)
+          if (userObj.status == "none") {
+          icon.className = "send-friend-req"
+          icon.setAttribute("viewBox", "0 0 24 24")
+          icon.setAttribute("fill", "none")
+          icon.setAttribute("stroke", "#FFD700")
+            icon.setAttribute("stroke-width", "2")
+          icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/>`
+          } else if (userObj.status == "pending") {
+          icon.className = "send-friend-req"
+          icon.setAttribute("viewBox", "0 0 24 24")
+          icon.setAttribute("fill", "none")
+          icon.setAttribute("stroke", "#FFD700")
+            icon.setAttribute("stroke-width", "2")
+            icon.innerHTML = `
+  <circle cx="12" cy="12" r="10" />
+  <polyline points="12 6 12 12 16 14" />
+`
+          } else if (userObj.status == "can_accept") {
+            icon.className = "send-friend-req"
+          icon.setAttribute("viewBox", "0 0 24 24")
+          icon.setAttribute("fill", "none")
+          icon.setAttribute("stroke", "#FFD700")
+            icon.setAttribute("stroke-width", "2")
+            icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2">
+  <path d="M5 13l4 4L19 7"/>
+</svg>`
+            
+          } else if (userObj.status == "friend") {
+            icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2">
+  <line x1="18" y1="6" x2="6" y2="18"></line>
+  <line x1="6" y1="6" x2="18" y2="18"></line>
+</svg>`
+          }
+          if (userObj.status == "none") {
+          icon.addEventListener("click", (e) => {
+            usernameClicked = e.currentTarget.getAttribute("data-username")
+              fetch("/send-friend-req", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({friend: usernameClicked})
+              }) //end of fetch
+          .then(res => res.json())
+          .then(data => {
+            console.log(data)
+            if (data.success) {
+              icon.innerHTML = `
+  <circle cx="12" cy="12" r="10" />
+  <polyline points="12 6 12 12 16 14" />
+`
+              icon.setAttribute("stroke", "#FFD700")
+                  }
+                }) //end of data
+          }) //end of iconEvent
+          }
+          else if (userObj.status == "can_accept") {
+            icon.addEventListener("click", (e) => {
+            usernameClicked = e.currentTarget.getAttribute("data-username")
+            fetch("/accept-friend-req", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({friend: usernameClicked})
+            }).then(res => res.json())
+          .then(data => {
+            console.log(data)
+            if (data.success) {
+              icon.innerHTML = `<line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>`
+            }
+          }) //end of data
+          .catch(error => console.log(`error ${error}`)
+                )
+            }) //end of iconEvent
+          } else if (userObj.status == "friend") {
+            icon.addEventListener("click", (e) => {
+            usernameClicked = e.currentTarget.getAttribute("data-username")
+            fetch("/unfriend", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({friend: usernameClicked})
+            }).then(res => res.json())
+          .then(data => {
+            console.log(data)
+            if (data.success) {
+              icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="#FFD700" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m-7-7h14"/></svg>`
+            }
+          }) //end of data
+          .catch(error => console.log(`error ${error}`)
+                )
+            })
+          }
+        userItem.appendChild(nameSpan)
+            userItem.appendChild(icon)
+            userDiv.appendChild(userItem)
+          }) //end of user forEach
+      }) //end of data
+      .catch(error => console.log(`error ${error}`)
+            ) //end of catch
+    
+    }) //end of searchBarEvent
+
+  }) //end of friendsIconEvent
+  
+
+  
+</script>
+</html>

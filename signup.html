@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SIGN UP</title>
 <style>
+  * {
+    -webkit-tap-highlight-color: transparent
+  }
   html, body {
     height: 100%;
     padding: 0;
@@ -68,6 +71,7 @@
     color: #AAAAAA;
   }
   #signin_link, p {
+    display: inline-
     margin-top: 10px;
     font-size: 10px;
   }
@@ -93,11 +97,19 @@
     <input id="confirm_pass" placeholder="Confirm Password" type="password" maxlength="30">
     <button id="signup_button">SIGN UP</button>
     <p>Already have an account?</p>
-    <a href="." id="signin_link">Sign In</a>
+    <a href="/signin" id="signin_link">Sign In</a>
   </div>
 </body>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
+  fetch("/cookies", {
+    method: "GET",
+    headers: {"Content-Type": "application/json"},
+  }).then(res => res.json()).then(data => {
+    if (data.success) {
+      window.location.href = `/${data.username}`
+    }
+  })
   //getting elements
   let name = document.getElementById("name")
   let email = document.getElementById("email")
@@ -124,6 +136,8 @@
     field.style.border = "1px solid red"
     field.focus();
   }
+  //forcing email to be lowercase
+  email.addEventListener("input", () => {email.value = email.value.toLowerCase()})
   //signup button event
   signup_button.addEventListener("click", (event) => {
 
@@ -150,8 +164,41 @@
     } else if (pass.value.trim() != confirm_pass.value.trim()) {
       showError(confirm_pass, "Your password isn't matching")
     }
-    
-  })
-  })
+   //checking errors
+   if (name.value.trim() == "" || email.value.trim() == "" || pass.value.trim() == "" || confirm_pass.value.trim() === "" || pass.value.trim() !== confirm_pass.value.trim() || pass.value.length < 8) {return}
+
+    fetch("/signup", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        username: name.value.trim(),
+        email: email.value.trim(),
+        password: pass.value.trim()
+      })
+    }).then(res => {
+      if (res.redirected) {
+        window.location.href = res.url
+      } else {
+        return res.json()
+      }
+    })
+    .then(data => {
+      if (!data) return;
+      
+      if (data.message == "Name and Email already exists") {
+        showError(name, "Name already exists")
+        showError(email, "Email already exists")
+        return
+      }
+      if (data.message == "Name already exists") {
+          return showError(name, data.message)
+        }
+      if (data.message == "Email already exists") {
+          return showError(email, data.message)
+      }
+    })
+    }) //end of /signup event
+  }) //end of DOMContentLoaded
+  
 </script>
 </html>
