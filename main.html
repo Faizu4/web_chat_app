@@ -301,7 +301,10 @@
     }).then(res => res.json())
     .then(data => {
       if (data.recent_chats.length > 0) {
-        pageContent.removeChild(document.getElementById("empty-state"))
+        const emptyState = document.getElementById("empty-state")
+        if (emptyState) {
+          pageContent.removeChild(emptyState)
+        }
         data.recent_chats.forEach(userObj => {
           let chats = document.createElement("div")
           chats.className = "chat-users"
@@ -472,10 +475,10 @@
   <path d="M22 2L15 22L11 13L2 9L22 2Z" />
 </svg>`
 
-    bottomNav = document.createElement("div")
+    let bottomNav = document.createElement("div")
     bottomNav.className = "bottom-chat-nav"
 
-    chatMessages = document.createElement("div")
+    let chatMessages = document.createElement("div")
     chatMessages.id = "chat-messages"
     chatMessages.style.padding = "10px" 
     chatMessages.style.marginBottom = "60px"
