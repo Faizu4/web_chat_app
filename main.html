@@ -514,7 +514,8 @@
         }
         const scrollHeightBefore = chatMessages.scrollHeight
 
-        data.messages.forEach(messageObj => {
+        // Reverse the messages array since we're prepending and want chronological order
+        data.messages.reverse().forEach(messageObj => {
           if (messageObj.type == "media") {
             prependMedia(messageObj.sender, messageObj.message, messageObj.timestamp)
           } else {
@@ -659,26 +660,74 @@
   const messageDiv = document.createElement("div");
   messageDiv.textContent = message;
   messageDiv.style.maxWidth = "70%";
+  messageDiv.style.minWidth = "fit-content";
+  messageDiv.style.display = "inline-block";
   messageDiv.style.margin = "8px";
   messageDiv.style.padding = "10px 15px";
   messageDiv.style.borderRadius = "16px";
   messageDiv.style.wordWrap = "break-word";
   messageDiv.style.fontFamily = "'Segoe UI', sans-serif";
   messageDiv.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.2)";
-  messageDiv.style.backgroundColor = sender === username ? "#FFD700" : "#2A2C33";
-  messageDiv.style.color = sender === username ? "#0F1117" : "#FFF";
-  messageDiv.style.borderBottomRightRadius = sender === username ? "0px" : "";
-  messageDiv.style.borderBottomLeftRadius = sender !== username ? "0px" : "";
+  
+  if (sender == username) {
+    messageDiv.style.backgroundColor = "#FFD700";
+    messageDiv.style.color = "#0F1117";
+    messageDiv.style.marginLeft = "auto";
+    messageDiv.style.textAlign = "right";
+    messageDiv.style.borderBottomRightRadius = "0px";
+  } else {
+    messageDiv.style.backgroundColor = "#2A2C33";
+    messageDiv.style.color = "#FFF";
+    messageDiv.style.marginRight = "auto";
+    messageDiv.style.textAlign = "left";
+    messageDiv.style.borderBottomLeftRadius = "0px";
+  }
 
   const timeLabel = document.createElement("small");
+  timeLabel.style.marginTop = "3px";
   timeLabel.style.opacity = "0.6";
   timeLabel.style.fontSize = "12px";
+  timeLabel.style.position = "absolute";
+  timeLabel.style.bottom = "3px";
   timeLabel.style.fontFamily = "monospace";
   timeLabel.style.color = sender === username ? "#0F1117" : "#ccc";
+  timeLabel.style.right = sender === username ? "8px" : "auto";
+  timeLabel.style.left = sender !== username ? "8px" : "auto";
 
   if (time) {
-    const dateObj = new Date(time);
-    timeLabel.textContent = dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    // Handle the custom timestamp format from your database (DD/MM/YYYY HH:MM/AM|PM)
+    let formattedTime;
+    if (time.includes('/') && time.includes(' ')) {
+      // Parse custom format: "26/06/2025 11:27/AM"
+      const parts = time.split(' ');
+      if (parts.length === 2) {
+        const [datePart, timePart] = parts;
+        const [day, month, year] = datePart.split('/');
+        const [timeOnly, period] = timePart.split('/');
+        const [hour, minute] = timeOnly.split(':');
+        
+        // Convert to standard format
+        let hour24 = parseInt(hour);
+        if (period === 'PM' && hour24 !== 12) hour24 += 12;
+        if (period === 'AM' && hour24 === 12) hour24 = 0;
+        
+        formattedTime = `${hour24.toString().padStart(2, '0')}:${minute}`;
+      } else {
+        formattedTime = time;
+      }
+    } else {
+      // Handle ISO format or other formats
+      const dateObj = new Date(time);
+      if (!isNaN(dateObj.getTime())) {
+        formattedTime = dateObj.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+      } else {
+        formattedTime = time;
+      }
+    }
+    timeLabel.textContent = formattedTime;
   }
 
   messageDiv.appendChild(timeLabel);
@@ -767,16 +816,42 @@
   timeLabel.style.marginTop = "3px";
   timeLabel.style.opacity = "0.6";
   timeLabel.style.fontSize = "12px";
-  timeLabel.style.position = "absolute";
   timeLabel.style.fontFamily = "monospace";
   timeLabel.style.color = sender === username ? "#0F1117" : "#ccc";
 
   if (time) {
-    const dateObj = new Date(time);
-    const formattedTime = dateObj.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit"
-    });
+    // Handle the custom timestamp format from your database (DD/MM/YYYY HH:MM/AM|PM)
+    let formattedTime;
+    if (time.includes('/') && time.includes(' ')) {
+      // Parse custom format: "26/06/2025 11:27/AM"
+      const parts = time.split(' ');
+      if (parts.length === 2) {
+        const [datePart, timePart] = parts;
+        const [day, month, year] = datePart.split('/');
+        const [timeOnly, period] = timePart.split('/');
+        const [hour, minute] = timeOnly.split(':');
+        
+        // Convert to standard format
+        let hour24 = parseInt(hour);
+        if (period === 'PM' && hour24 !== 12) hour24 += 12;
+        if (period === 'AM' && hour24 === 12) hour24 = 0;
+        
+        formattedTime = `${hour24.toString().padStart(2, '0')}:${minute}`;
+      } else {
+        formattedTime = time;
+      }
+    } else {
+      // Handle ISO format or other formats
+      const dateObj = new Date(time);
+      if (!isNaN(dateObj.getTime())) {
+        formattedTime = dateObj.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+      } else {
+        formattedTime = time;
+      }
+    }
     timeLabel.textContent = formattedTime;
   }
 
