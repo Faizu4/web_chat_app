@@ -412,7 +412,7 @@
       if (type == "media") {
         appendMedia(sender, message, timestamp)
       } else {
-        appendMessages(sender, message)
+        appendMessages(sender, message, timestamp)
       }
       console.log("recieved message", receivedMessage)
       
@@ -632,13 +632,41 @@
     timeLabel.style.color = sender === username ? "#0F1117" : "#ccc"
     timeLabel.style.right = sender === username ? "8px" : "auto"
     timeLabel.style.left = sender !== username ? "8px" : "auto"
+    
     if (time) {
-      const dateObj = new Date(time)
-      const formattedTime = dateObj.toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit"
-      })
-      timeLabel.textContent = formattedTime
+      // Handle the custom timestamp format from your database (DD/MM/YYYY HH:MM/AM|PM)
+      let formattedTime;
+      if (time.includes('/') && time.includes(' ')) {
+        // Parse custom format: "26/06/2025 11:27/AM"
+        const parts = time.split(' ');
+        if (parts.length === 2) {
+          const [datePart, timePart] = parts;
+          const [day, month, year] = datePart.split('/');
+          const [timeOnly, period] = timePart.split('/');
+          const [hour, minute] = timeOnly.split(':');
+          
+          // Convert to standard format
+          let hour24 = parseInt(hour);
+          if (period === 'PM' && hour24 !== 12) hour24 += 12;
+          if (period === 'AM' && hour24 === 12) hour24 = 0;
+          
+          formattedTime = `${hour24.toString().padStart(2, '0')}:${minute}`;
+        } else {
+          formattedTime = time;
+        }
+      } else {
+        // Handle ISO format or other formats
+        const dateObj = new Date(time);
+        if (!isNaN(dateObj.getTime())) {
+          formattedTime = dateObj.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+          });
+        } else {
+          formattedTime = time;
+        }
+      }
+      timeLabel.textContent = formattedTime;
     }
     messageDiv.appendChild(timeLabel)
     outerDiv.appendChild(messageDiv)
