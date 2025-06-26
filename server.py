@@ -69,7 +69,7 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
             db.execute("INSERT INTO messages (sender, receiver, message, type, time) VALUES (?, ?, ?, ?, ?)", (sender, receiver, message, msg_type, time_iso))
             conn.commit()
           
-        await websocket.send_text(json.dumps({"sender": sender, "receiver": receiver, "message": message, "timestamp": time_iso, "type": msg_type}))
+        await websocket.send_text(json.dumps({"sender": sender, "receiver": receiver, "message": message, "type": msg_type}))
         if receiver in active_connections:
           await active_connections[receiver].send_text(json.dumps({"sender": sender, "receiver": receiver, "message": message, "timestamp": time_iso, "type": msg_type}))
     except Exception as e:
