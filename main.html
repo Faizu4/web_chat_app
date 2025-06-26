@@ -634,35 +634,42 @@
     timeLabel.style.left = sender !== username ? "8px" : "auto"
     
     if (time) {
-      // Handle the custom timestamp format from your database (DD/MM/YYYY HH:MM/AM|PM)
       let formattedTime;
+      
       if (time.includes('/') && time.includes(' ')) {
-        // Parse custom format: "26/06/2025 11:27/AM"
-        const parts = time.split(' ');
-        if (parts.length === 2) {
-          const [datePart, timePart] = parts;
-          const [day, month, year] = datePart.split('/');
-          const [timeOnly, period] = timePart.split('/');
-          const [hour, minute] = timeOnly.split(':');
-          
-          // Convert to standard format
-          let hour24 = parseInt(hour);
-          if (period === 'PM' && hour24 !== 12) hour24 += 12;
-          if (period === 'AM' && hour24 === 12) hour24 = 0;
-          
-          formattedTime = `${hour24.toString().padStart(2, '0')}:${minute}`;
-        } else {
+        // Handle custom format: "26/06/2025 11:27/AM"
+        try {
+          const parts = time.split(' ');
+          if (parts.length === 2) {
+            const [datePart, timePart] = parts;
+            const [timeOnly, period] = timePart.split('/');
+            const [hour, minute] = timeOnly.split(':');
+            
+            let hour24 = parseInt(hour);
+            if (period === 'PM' && hour24 !== 12) hour24 += 12;
+            if (period === 'AM' && hour24 === 12) hour24 = 0;
+            
+            formattedTime = `${hour24.toString().padStart(2, '0')}:${minute}`;
+          } else {
+            formattedTime = time;
+          }
+        } catch (e) {
           formattedTime = time;
         }
       } else {
-        // Handle ISO format or other formats
-        const dateObj = new Date(time);
-        if (!isNaN(dateObj.getTime())) {
-          formattedTime = dateObj.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit"
-          });
-        } else {
+        // Handle ISO format: "2025-06-25T17:05:08"
+        try {
+          const dateObj = new Date(time);
+          if (!isNaN(dateObj.getTime())) {
+            formattedTime = dateObj.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false
+            });
+          } else {
+            formattedTime = time;
+          }
+        } catch (e) {
           formattedTime = time;
         }
       }
@@ -724,35 +731,42 @@
   timeLabel.style.left = sender !== username ? "8px" : "auto";
 
   if (time) {
-    // Handle the custom timestamp format from your database (DD/MM/YYYY HH:MM/AM|PM)
     let formattedTime;
+    
     if (time.includes('/') && time.includes(' ')) {
-      // Parse custom format: "26/06/2025 11:27/AM"
-      const parts = time.split(' ');
-      if (parts.length === 2) {
-        const [datePart, timePart] = parts;
-        const [day, month, year] = datePart.split('/');
-        const [timeOnly, period] = timePart.split('/');
-        const [hour, minute] = timeOnly.split(':');
-        
-        // Convert to standard format
-        let hour24 = parseInt(hour);
-        if (period === 'PM' && hour24 !== 12) hour24 += 12;
-        if (period === 'AM' && hour24 === 12) hour24 = 0;
-        
-        formattedTime = `${hour24.toString().padStart(2, '0')}:${minute}`;
-      } else {
+      // Handle custom format: "26/06/2025 11:27/AM"
+      try {
+        const parts = time.split(' ');
+        if (parts.length === 2) {
+          const [datePart, timePart] = parts;
+          const [timeOnly, period] = timePart.split('/');
+          const [hour, minute] = timeOnly.split(':');
+          
+          let hour24 = parseInt(hour);
+          if (period === 'PM' && hour24 !== 12) hour24 += 12;
+          if (period === 'AM' && hour24 === 12) hour24 = 0;
+          
+          formattedTime = `${hour24.toString().padStart(2, '0')}:${minute}`;
+        } else {
+          formattedTime = time;
+        }
+      } catch (e) {
         formattedTime = time;
       }
     } else {
-      // Handle ISO format or other formats
-      const dateObj = new Date(time);
-      if (!isNaN(dateObj.getTime())) {
-        formattedTime = dateObj.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit"
-        });
-      } else {
+      // Handle ISO format: "2025-06-25T17:05:08"
+      try {
+        const dateObj = new Date(time);
+        if (!isNaN(dateObj.getTime())) {
+          formattedTime = dateObj.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
+          });
+        } else {
+          formattedTime = time;
+        }
+      } catch (e) {
         formattedTime = time;
       }
     }
@@ -826,35 +840,42 @@
         timeLabel.style.left = "8px"
       }
 
-      // Handle the custom timestamp format from your database (DD/MM/YYYY HH:MM/AM|PM)
       let formattedTime;
+      
       if (time.includes('/') && time.includes(' ')) {
-        // Parse custom format: "26/06/2025 11:27/AM"
-        const parts = time.split(' ');
-        if (parts.length === 2) {
-          const [datePart, timePart] = parts;
-          const [day, month, year] = datePart.split('/');
-          const [timeOnly, period] = timePart.split('/');
-          const [hour, minute] = timeOnly.split(':');
-          
-          // Convert to standard format
-          let hour24 = parseInt(hour);
-          if (period === 'PM' && hour24 !== 12) hour24 += 12;
-          if (period === 'AM' && hour24 === 12) hour24 = 0;
-          
-          formattedTime = `${hour24.toString().padStart(2, '0')}:${minute}`;
-        } else {
+        // Handle custom format: "26/06/2025 11:27/AM"
+        try {
+          const parts = time.split(' ');
+          if (parts.length === 2) {
+            const [datePart, timePart] = parts;
+            const [timeOnly, period] = timePart.split('/');
+            const [hour, minute] = timeOnly.split(':');
+            
+            let hour24 = parseInt(hour);
+            if (period === 'PM' && hour24 !== 12) hour24 += 12;
+            if (period === 'AM' && hour24 === 12) hour24 = 0;
+            
+            formattedTime = `${hour24.toString().padStart(2, '0')}:${minute}`;
+          } else {
+            formattedTime = time;
+          }
+        } catch (e) {
           formattedTime = time;
         }
       } else {
-        // Handle ISO format or other formats
-        const dateObj = new Date(time);
-        if (!isNaN(dateObj.getTime())) {
-          formattedTime = dateObj.toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit"
-          });
-        } else {
+        // Handle ISO format: "2025-06-25T17:05:08"
+        try {
+          const dateObj = new Date(time);
+          if (!isNaN(dateObj.getTime())) {
+            formattedTime = dateObj.toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false
+            });
+          } else {
+            formattedTime = time;
+          }
+        } catch (e) {
           formattedTime = time;
         }
       }
@@ -927,35 +948,42 @@
       timeLabel.style.left = "8px";
     }
 
-    // Handle the custom timestamp format from your database (DD/MM/YYYY HH:MM/AM|PM)
     let formattedTime;
+    
     if (time.includes('/') && time.includes(' ')) {
-      // Parse custom format: "26/06/2025 11:27/AM"
-      const parts = time.split(' ');
-      if (parts.length === 2) {
-        const [datePart, timePart] = parts;
-        const [day, month, year] = datePart.split('/');
-        const [timeOnly, period] = timePart.split('/');
-        const [hour, minute] = timeOnly.split(':');
-        
-        // Convert to standard format
-        let hour24 = parseInt(hour);
-        if (period === 'PM' && hour24 !== 12) hour24 += 12;
-        if (period === 'AM' && hour24 === 12) hour24 = 0;
-        
-        formattedTime = `${hour24.toString().padStart(2, '0')}:${minute}`;
-      } else {
+      // Handle custom format: "26/06/2025 11:27/AM"
+      try {
+        const parts = time.split(' ');
+        if (parts.length === 2) {
+          const [datePart, timePart] = parts;
+          const [timeOnly, period] = timePart.split('/');
+          const [hour, minute] = timeOnly.split(':');
+          
+          let hour24 = parseInt(hour);
+          if (period === 'PM' && hour24 !== 12) hour24 += 12;
+          if (period === 'AM' && hour24 === 12) hour24 = 0;
+          
+          formattedTime = `${hour24.toString().padStart(2, '0')}:${minute}`;
+        } else {
+          formattedTime = time;
+        }
+      } catch (e) {
         formattedTime = time;
       }
     } else {
-      // Handle ISO format or other formats
-      const dateObj = new Date(time);
-      if (!isNaN(dateObj.getTime())) {
-        formattedTime = dateObj.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit"
-        });
-      } else {
+      // Handle ISO format: "2025-06-25T17:05:08"
+      try {
+        const dateObj = new Date(time);
+        if (!isNaN(dateObj.getTime())) {
+          formattedTime = dateObj.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false
+          });
+        } else {
+          formattedTime = time;
+        }
+      } catch (e) {
         formattedTime = time;
       }
     }
