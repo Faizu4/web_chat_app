@@ -508,8 +508,9 @@
         currentOffset += 30
         const res = await fetch(`/get-messages?friend=${encodeURIComponent(friendUsername)}&&offset=${currentOffset}`);
         const data = await res.json()
-        if (data.messages.length === 0) {
+        if (!data.success || !data.messages || data.messages.length === 0) {
           allMessagesLoaded=true
+          loading = false
           return
         }
         const scrollHeightBefore = chatMessages.scrollHeight
@@ -749,6 +750,11 @@
     outerDiv.style.flexDirection = "column"
     outerDiv.style.alignItems = sender === username ? "flex-end": "flex-start"
     outerDiv.style.margin = "5px 10px"
+    outerDiv.style.position = "relative"
+
+    const mediaContainer = document.createElement("div")
+    mediaContainer.style.position = "relative"
+    mediaContainer.style.display = "inline-block"
 
     const isVideo = base64.startsWith("data:video/")
     let mediaElement = null
@@ -759,20 +765,76 @@
     } else {
       mediaElement = document.createElement("img")
     }
+    
     mediaElement.src = base64
     mediaElement.style.maxWidth = "70%"
-    mediaElement.style.margin = "5px"
-    outerDiv.appendChild(mediaElement)
+    mediaElement.style.borderRadius = "12px"
+    mediaElement.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.2)"
+    
+    if (sender === username) {
+      mediaElement.style.border = "2px solid #FFD700"
+    } else {
+      mediaElement.style.border = "2px solid #999"
+    }
+
+    mediaContainer.appendChild(mediaElement)
 
     if (time) {
       const timeLabel = document.createElement("small")
-      timeLabel.textContent = new Date(time).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})
-      timeLabel.style.fontSize = "12px"
-      timeLabel.style.opacity = "0.6"
-      timeLabel.style.margin = "2px"
-      timeLabel.style.color = "#ccc"
-      outerDiv.appendChild(timeLabel)
+      timeLabel.style.position = "absolute"
+      timeLabel.style.bottom = "8px"
+      timeLabel.style.fontSize = "11px"
+      timeLabel.style.opacity = "0.9"
+      timeLabel.style.fontFamily = "monospace"
+      timeLabel.style.backgroundColor = "rgba(0, 0, 0, 0.7)"
+      timeLabel.style.color = "#fff"
+      timeLabel.style.padding = "2px 6px"
+      timeLabel.style.borderRadius = "8px"
+      timeLabel.style.fontWeight = "bold"
+      
+      if (sender === username) {
+        timeLabel.style.right = "8px"
+      } else {
+        timeLabel.style.left = "8px"
+      }
+
+      // Handle the custom timestamp format from your database (DD/MM/YYYY HH:MM/AM|PM)
+      let formattedTime;
+      if (time.includes('/') && time.includes(' ')) {
+        // Parse custom format: "26/06/2025 11:27/AM"
+        const parts = time.split(' ');
+        if (parts.length === 2) {
+          const [datePart, timePart] = parts;
+          const [day, month, year] = datePart.split('/');
+          const [timeOnly, period] = timePart.split('/');
+          const [hour, minute] = timeOnly.split(':');
+          
+          // Convert to standard format
+          let hour24 = parseInt(hour);
+          if (period === 'PM' && hour24 !== 12) hour24 += 12;
+          if (period === 'AM' && hour24 === 12) hour24 = 0;
+          
+          formattedTime = `${hour24.toString().padStart(2, '0')}:${minute}`;
+        } else {
+          formattedTime = time;
+        }
+      } else {
+        // Handle ISO format or other formats
+        const dateObj = new Date(time);
+        if (!isNaN(dateObj.getTime())) {
+          formattedTime = dateObj.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit"
+          });
+        } else {
+          formattedTime = time;
+        }
+      }
+      timeLabel.textContent = formattedTime;
+      mediaContainer.appendChild(timeLabel)
     }
+    
+    outerDiv.appendChild(mediaContainer)
     chatMessagesContainer.appendChild(outerDiv)
     
     // Force scroll to bottom with a small delay
@@ -789,6 +851,11 @@
   outerDiv.style.flexDirection = "column";
   outerDiv.style.alignItems = sender === username ? "flex-end" : "flex-start";
   outerDiv.style.margin = "5px 10px";
+  outerDiv.style.position = "relative";
+
+  const mediaContainer = document.createElement("div");
+  mediaContainer.style.position = "relative";
+  mediaContainer.style.display = "inline-block";
 
   let mediaElement;
   if (base64.startsWith("data:image")) {
@@ -803,7 +870,6 @@
   mediaElement.src = base64;
   mediaElement.style.maxWidth = "70%";
   mediaElement.style.borderRadius = "12px";
-  mediaElement.style.margin = "8px";
   mediaElement.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.2)";
 
   if (sender === username) {
@@ -812,14 +878,27 @@
     mediaElement.style.border = "2px solid #999";
   }
 
-  const timeLabel = document.createElement("small");
-  timeLabel.style.marginTop = "3px";
-  timeLabel.style.opacity = "0.6";
-  timeLabel.style.fontSize = "12px";
-  timeLabel.style.fontFamily = "monospace";
-  timeLabel.style.color = sender === username ? "#0F1117" : "#ccc";
+  mediaContainer.appendChild(mediaElement);
 
   if (time) {
+    const timeLabel = document.createElement("small");
+    timeLabel.style.position = "absolute";
+    timeLabel.style.bottom = "8px";
+    timeLabel.style.fontSize = "11px";
+    timeLabel.style.opacity = "0.9";
+    timeLabel.style.fontFamily = "monospace";
+    timeLabel.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+    timeLabel.style.color = "#fff";
+    timeLabel.style.padding = "2px 6px";
+    timeLabel.style.borderRadius = "8px";
+    timeLabel.style.fontWeight = "bold";
+    
+    if (sender === username) {
+      timeLabel.style.right = "8px";
+    } else {
+      timeLabel.style.left = "8px";
+    }
+
     // Handle the custom timestamp format from your database (DD/MM/YYYY HH:MM/AM|PM)
     let formattedTime;
     if (time.includes('/') && time.includes(' ')) {
@@ -853,10 +932,10 @@
       }
     }
     timeLabel.textContent = formattedTime;
+    mediaContainer.appendChild(timeLabel);
   }
 
-  outerDiv.appendChild(mediaElement);
-  outerDiv.appendChild(timeLabel);
+  outerDiv.appendChild(mediaContainer);
   chatMessagesContainer.insertBefore(outerDiv, chatMessagesContainer.firstChild);
   }
   
