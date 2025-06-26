@@ -60,9 +60,11 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
         sender = msg["sender"]
         receiver = msg["receiver"]
         message = msg["message"]
-        time_iso = datetime.now().replace(microsecond=0).isoformat()
+        time_now = datetime.now(ZoneInfo("Asia/Kolkata"))
+        #time_iso = datetime.now().replace(microsecond=0).isoformat()
+        time_iso = time_now.strftime("%d/%m/%Y %I:%M/%p")
         
-        if msg_type == "text":
+        if msg_type in ["text", "media"]:
             db.execute("INSERT INTO messages (sender, receiver, message, type, time) VALUES (?, ?, ?, ?, ?)", (sender, receiver, message, msg_type, time_iso))
             conn.commit()
           
@@ -76,9 +78,10 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
           active_connections.pop(username, None)
             
 @app.get("/get-messages")
-def get_messages(request: Request, friend: str):
+def get_messages(request: Request, friend: str, offset: int = 0):
     username = request.cookies.get("username")
-    messages = db.execute("SELECT * FROM messages WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?)", (username, friend, friend, username)).fetchall()
+    messages = db.execute("SELECT * FROM messages WHERE (sender = ? AND receiver = ?) OR (sender = ? AND receiver = ?) ORDER BY id DESC LIMIT 30 OFFSET ?", (username, friend, friend, username, offset)).fetchall()
+    messages = messages[::-1]
     if messages:
       return JSONResponse(status_code=200, content={"success": True, "messages": [{"sender": message[1], "receiver": message[2], "type": message[3], "message": message[4], "timestamp": message[5]} for message in messages]})
     else:

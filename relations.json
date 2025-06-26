@@ -16,5 +16,17 @@
         "user2": "faizu",
         "status": "friend",
         "date": "25/06/2025"
+    },
+    {
+        "user1": "Shado",
+        "user2": "faizu",
+        "status": "friend",
+        "date": "25/06/2025"
+    },
+    {
+        "user1": "Shado",
+        "user2": "faizu",
+        "status": "pending",
+        "date": "25/06/2025"
     }
 ]
