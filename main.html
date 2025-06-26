@@ -568,6 +568,7 @@
       const reader = new FileReader()
       reader.onload = async () => {
         const base64data = reader.result
+        // Show the media immediately with base64 for instant feedback
         appendMedia(username, base64data)
         if (socket.readyState == WebSocket.OPEN) {
           socket.send(JSON.stringify({
@@ -780,7 +781,7 @@
 }
   
 
-  function appendMedia(sender, base64, time=null) {
+  function appendMedia(sender, mediaData, time=null) {
     const chatMessagesContainer = document.getElementById("chat-messages")
     if (!chatMessagesContainer) {
       console.error("Chat messages container not found")
@@ -798,17 +799,33 @@
     mediaContainer.style.position = "relative"
     mediaContainer.style.display = "inline-block"
 
-    const isVideo = base64.startsWith("data:video/")
     let mediaElement = null
-
-    if (isVideo) {
-      mediaElement = document.createElement("video")
-      mediaElement.controls = true
+    let mediaSrc = ""
+    
+    // Check if it's a filename or base64 data
+    if (mediaData.startsWith("data:")) {
+      // It's base64 data (for newly uploaded files)
+      mediaSrc = mediaData
+      const isVideo = mediaData.startsWith("data:video/")
+      if (isVideo) {
+        mediaElement = document.createElement("video")
+        mediaElement.controls = true
+      } else {
+        mediaElement = document.createElement("img")
+      }
     } else {
-      mediaElement = document.createElement("img")
+      // It's a filename, load from server
+      mediaSrc = `/media/${mediaData}`
+      const extension = mediaData.split('.').pop().toLowerCase()
+      if (['mp4', 'webm', 'mov', 'avi'].includes(extension)) {
+        mediaElement = document.createElement("video")
+        mediaElement.controls = true
+      } else {
+        mediaElement = document.createElement("img")
+      }
     }
     
-    mediaElement.src = base64
+    mediaElement.src = mediaSrc
     mediaElement.style.maxWidth = "70%"
     mediaElement.style.borderRadius = "12px"
     mediaElement.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.2)"
@@ -891,7 +908,7 @@
       chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
     }, 10)
   }
-  function prependMedia(sender, base64, time = null) {
+  function prependMedia(sender, mediaData, time = null) {
   const chatMessagesContainer = document.getElementById("chat-messages");
   if (!chatMessagesContainer) return;
 
@@ -907,16 +924,33 @@
   mediaContainer.style.display = "inline-block";
 
   let mediaElement;
-  if (base64.startsWith("data:image")) {
-    mediaElement = document.createElement("img");
-  } else if (base64.startsWith("data:video")) {
-    mediaElement = document.createElement("video");
-    mediaElement.controls = true;
+  let mediaSrc = "";
+  
+  // Check if it's a filename or base64 data
+  if (mediaData.startsWith("data:")) {
+    // It's base64 data
+    mediaSrc = mediaData
+    if (mediaData.startsWith("data:image")) {
+      mediaElement = document.createElement("img");
+    } else if (mediaData.startsWith("data:video")) {
+      mediaElement = document.createElement("video");
+      mediaElement.controls = true;
+    } else {
+      return; // unsupported
+    }
   } else {
-    return; // unsupported
+    // It's a filename, load from server
+    mediaSrc = `/media/${mediaData}`
+    const extension = mediaData.split('.').pop().toLowerCase()
+    if (['mp4', 'webm', 'mov', 'avi'].includes(extension)) {
+      mediaElement = document.createElement("video")
+      mediaElement.controls = true
+    } else {
+      mediaElement = document.createElement("img")
+    }
   }
 
-  mediaElement.src = base64;
+  mediaElement.src = mediaSrc;
   mediaElement.style.maxWidth = "70%";
   mediaElement.style.borderRadius = "12px";
   mediaElement.style.boxShadow = "0 1px 3px rgba(0, 0, 0, 0.2)";

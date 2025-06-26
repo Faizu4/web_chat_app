@@ -9,6 +9,9 @@ from zoneinfo import ZoneInfo
 import uvicorn #server to run this web
 import sqlite3 #database
 import json #json database
+import os
+import base64
+import uuid
 app = FastAPI()
 
 #CORS middleware
@@ -29,6 +32,12 @@ class FriendRequest(BaseModel):
     friend: str
 # Serve static files (like index.html)
 app.mount("/zyro", StaticFiles(directory=".", html=True), name="zyro")
+# Serve media files
+app.mount("/media", StaticFiles(directory="media"), name="media")
+
+# Create media folder if it doesn't exist
+if not os.path.exists("media"):
+    os.makedirs("media")
 
 conn = sqlite3.connect('users.db', check_same_thread=False)
 db = conn.cursor()
@@ -65,9 +74,48 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
         #time_iso = datetime.now().replace(microsecond=0).isoformat()
         time_iso = time_now.strftime("%d/%m/%Y %I:%M/%p")
         
-        if msg_type in ["text", "media"]:
+        if msg_type == "text":
             db.execute("INSERT INTO messages (sender, receiver, message, type, time) VALUES (?, ?, ?, ?, ?)", (sender, receiver, message, msg_type, time_iso))
             conn.commit()
+            
+        elif msg_type == "media":
+            # Save media file and store filename in database
+            try:
+                # Extract file extension from base64 data
+                header, encoded = message.split(',', 1)
+                file_extension = ""
+                if "image/jpeg" in header:
+                    file_extension = ".jpg"
+                elif "image/png" in header:
+                    file_extension = ".png"
+                elif "image/gif" in header:
+                    file_extension = ".gif"
+                elif "video/mp4" in header:
+                    file_extension = ".mp4"
+                elif "video/webm" in header:
+                    file_extension = ".webm"
+                else:
+                    file_extension = ".bin"
+                
+                # Generate unique filename
+                filename = f"{uuid.uuid4()}{file_extension}"
+                filepath = os.path.join("media", filename)
+                
+                # Decode and save file
+                file_data = base64.b64decode(encoded)
+                with open(filepath, "wb") as f:
+                    f.write(file_data)
+                
+                # Store filename in database instead of full base64
+                db.execute("INSERT INTO messages (sender, receiver, message, type, time) VALUES (?, ?, ?, ?, ?)", (sender, receiver, filename, msg_type, time_iso))
+                conn.commit()
+                
+                # Send filename to sender
+                message = filename
+                
+            except Exception as e:
+                print(f"Error saving media file: {e}")
+                continue
           
         await websocket.send_text(json.dumps({"sender": sender, "receiver": receiver, "message": message, "type": msg_type}))
         if receiver in active_connections:
