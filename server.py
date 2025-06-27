@@ -35,23 +35,26 @@ async def get_db():
 
 @app.on_event("startup")
 async def startup():
-    db = await get_db()
-    async with db.acquire() as conn:
-        await conn.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            username TEXT PRIMARY KEY, password TEXT, email TEXT UNIQUE
-        );
-        CREATE TABLE IF NOT EXISTS relations (
-            user1 TEXT, user2 TEXT, status TEXT, date TEXT
-        );
-        CREATE TABLE IF NOT EXISTS recent_chats (
-            user1 TEXT, user2 TEXT, last_opened TEXT
-        );
-        CREATE TABLE IF NOT EXISTS messages (
-            id SERIAL PRIMARY KEY, sender TEXT, receiver TEXT,
-            type TEXT, message TEXT, time TEXT
-        );
-        """)
+    try:
+        db = await get_db()
+        async with db.acquire() as conn:
+            await conn.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                username TEXT PRIMARY KEY, password TEXT, email TEXT UNIQUE
+            );
+            CREATE TABLE IF NOT EXISTS relations (
+                user1 TEXT, user2 TEXT, status TEXT, date TEXT
+            );
+            CREATE TABLE IF NOT EXISTS recent_chats (
+                user1 TEXT, user2 TEXT, last_opened TEXT
+            );
+            CREATE TABLE IF NOT EXISTS messages (
+                id SERIAL PRIMARY KEY, sender TEXT, receiver TEXT,
+                type TEXT, message TEXT, time TEXT
+            );
+            """)
+    except Exception as e:
+        print(f"Database startup error: {e}")
 
 # Models
 class SignUpRequest(BaseModel):
@@ -265,19 +268,23 @@ async def remove_recent(request: Request, data: FriendRequest):
         await conn.execute("DELETE FROM recent_chats WHERE user1=$1 AND user2=$2", username, data.friend)
     return {"success": True, "message": "Chat removed"}
 
-# SPA routes
-@app.get("/{full_path:path}", response_class=HTMLResponse)
-async def fallback(full_path: str, request: Request):
+# Cookies endpoint
+@app.get("/cookies")
+async def get_cookies(request: Request):
     username = request.cookies.get("username")
+    email = request.cookies.get("email")
     if not username:
+        return {"success": False, "message": "No cookies found"}
+    return {"success": True, "username": username, "email": email}
+
+# SPA routes
+@app.get("/{username}")
+async def user_home(username: str, request: Request):
+    cookie_username = request.cookies.get("username")
+    if not cookie_username:
         return RedirectResponse("/signin")
     with open("main.html") as f:
-        return HTMLResponse(f.read().replace("{{username}}", username))
-
-@app.get("/{username}")
-async def user_home(username: str):
-    with open("main.html") as f:
-        return HTMLResponse(f.read().replace("{{username}}", username))
+        return HTMLResponse(f.read().replace("{{username}}", cookie_username))
 
 # Run
 if __name__ == "__main__":
