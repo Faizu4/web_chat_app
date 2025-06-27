@@ -277,6 +277,26 @@ async def get_cookies(request: Request):
         return {"success": False, "message": "No cookies found"}
     return {"success": True, "username": username, "email": email}
 
+# Root route
+@app.get("/")
+async def root(request: Request):
+    username = request.cookies.get("username")
+    if not username:
+        return RedirectResponse("/signin")
+    return RedirectResponse(f"/{username}")
+
+# Signin page
+@app.get("/signin")
+async def signin_page():
+    with open("signin.html") as f:
+        return HTMLResponse(f.read())
+
+# Signup page  
+@app.get("/signup")
+async def signup_page():
+    with open("signup.html") as f:
+        return HTMLResponse(f.read())
+
 # SPA routes
 @app.get("/{username}")
 async def user_home(username: str, request: Request):
