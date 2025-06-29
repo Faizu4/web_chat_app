@@ -555,12 +555,30 @@
       if (msg && socket.readyState == WebSocket.OPEN) {
         socket.send(JSON.stringify({sender: username, receiver: friendUsername, message: msg, type: "text"}))
         messageBar.value = ""
+        messageBar.focus()
       }
     })
     
     album.addEventListener("click", () => {
       hiddenFileInput.click()
     })
+    upperNav.addEventListener("click", () => {
+      clearPage()
+      backButton = document.createElement("button")
+      backButton.textContent = "Back"
+      
+      fetch(`/get-media?friend=${encodeURIComponent(friendUsername)}`)
+      .then(res => res.json())
+      .then(data => {
+        console.log(data)
+      })
+      .catch(error => console.log(error))
+      backButton.addEventListener("click", () => {
+        clearPage()
+        renderChatInterface(null, friendUsername)
+      }) //end of button event
+      //pageContent.appendChild(backButton)
+    }) //end of upperNavEvent
     
     hiddenFileInput.addEventListener("change", async () => {
       const file = hiddenFileInput.files[0]
@@ -590,6 +608,7 @@
       console.error("Chat messages container not found")
       return
     }
+    isUserAtBottom = chatMessagesContainer.scrollHeight - chatMessagesContainer.scrollTop - chatMessagesContainer.clientHeight < 300
     
     const outerDiv = document.createElement("div")
     outerDiv.style.display = "flex"
@@ -597,6 +616,7 @@
     outerDiv.style.alignItems = sender === username ? "flex-end": "flex-start"
     outerDiv.style.margin = "5px 10px"
     const messageDiv = document.createElement("div")
+    messageDiv.style.position = "relative"
     messageDiv.textContent = message
     messageDiv.style.maxWidth = "70%"
     messageDiv.style.minWidth = "fit-content"
@@ -626,7 +646,7 @@
     const timeLabel = document.createElement("small")
     timeLabel.style.marginTop = "3px"
     timeLabel.style.opacity = "0.6"
-    timeLabel.style.fontSize = "12px"
+    timeLabel.style.fontSize = "7px"
     timeLabel.style.position = "absolute"
     timeLabel.style.bottom = "3px"
     timeLabel.style.fontFamily = "monospace"
@@ -681,10 +701,13 @@
     chatMessagesContainer.appendChild(outerDiv)
     
     // Force scroll to bottom with a small delay
-    setTimeout(() => {
+    if (isUserAtBottom) {
+    setTimeout(() => { 
       chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
-    }, 10)
-  }
+    }, 10) //end of setTimeout
+  } //end of if
+  } //end of appendMessages
+  
   function prependMessages(sender, message, time = null) {
   const chatMessagesContainer = document.getElementById("chat-messages");
 
@@ -787,6 +810,7 @@
       console.error("Chat messages container not found")
       return
     }
+    isUserAtBottom = chatMessagesContainer.scrollHeight - chatMessagesContainer.scrollTop - chatMessagesContainer.clientHeight < 300
     
     const outerDiv = document.createElement("div")
     outerDiv.style.display = "flex"
@@ -904,10 +928,12 @@
     chatMessagesContainer.appendChild(outerDiv)
     
     // Force scroll to bottom with a small delay
+    if (isUserAtBottom) {
     setTimeout(() => {
       chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight
     }, 10)
-  }
+    } //
+  }  //end of
   function prependMedia(sender, mediaData, time = null) {
   const chatMessagesContainer = document.getElementById("chat-messages");
   if (!chatMessagesContainer) return;

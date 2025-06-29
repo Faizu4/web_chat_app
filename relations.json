@@ -1,32 +1,14 @@
 [
     {
-        "user1": "faizu",
-        "user2": "Neha",
+        "user1": "Demo",
+        "user2": "Faizu",
         "status": "friend",
-        "date": "24/06/2025"
+        "date": "29/06/2025"
     },
     {
-        "user1": "Sham",
-        "user2": "faizu",
+        "user1": "Demo",
+        "user2": "Faizu",
         "status": "friend",
-        "date": "23/06/2025"
-    },
-    {
-        "user1": "A",
-        "user2": "faizu",
-        "status": "friend",
-        "date": "25/06/2025"
-    },
-    {
-        "user1": "Shado",
-        "user2": "faizu",
-        "status": "friend",
-        "date": "25/06/2025"
-    },
-    {
-        "user1": "Shado",
-        "user2": "faizu",
-        "status": "pending",
-        "date": "25/06/2025"
+        "date": "29/06/2025"
     }
 ]
