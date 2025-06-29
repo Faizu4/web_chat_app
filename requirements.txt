@@ -1,6 +1,9 @@
 fastapi
-uvicorn
+uvicorn[standard]
 python-dotenv
 psycopg[binary]
 pydantic
 python-multipart
+aiofiles
+Jinja2
+requests
