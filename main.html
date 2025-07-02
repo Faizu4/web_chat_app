@@ -513,6 +513,7 @@
           loading = false
           return
         }
+        console.log(data)
         const scrollHeightBefore = chatMessages.scrollHeight
 
         // Reverse the messages array since we're prepending and want chronological order
@@ -722,6 +723,7 @@
   messageDiv.style.maxWidth = "70%";
   messageDiv.style.minWidth = "fit-content";
   messageDiv.style.display = "inline-block";
+  messageDiv.style.position = "relative"
   messageDiv.style.margin = "8px";
   messageDiv.style.padding = "10px 15px";
   messageDiv.style.borderRadius = "16px";
@@ -746,7 +748,7 @@
   const timeLabel = document.createElement("small");
   timeLabel.style.marginTop = "3px";
   timeLabel.style.opacity = "0.6";
-  timeLabel.style.fontSize = "12px";
+  timeLabel.style.fontSize = "7px";
   timeLabel.style.position = "absolute";
   timeLabel.style.bottom = "3px";
   timeLabel.style.fontFamily = "monospace";
