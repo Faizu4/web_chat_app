@@ -279,7 +279,7 @@
       username = data.username
       email = data.email
 
-
+      connectSocket(username)
       const path = window.location.pathname;
       const segments = path.split("/").filter(Boolean);
 
@@ -399,7 +399,7 @@
   function clearPage() {
     pageContent.innerHTML = ""
   }
-  function connectSocket(username, friendUsername) {
+  function connectSocket(username, friendUsername=null) {
     let protocol = location.protocol === "https:" ? "wss" : "ws"
     socket = new WebSocket(`${protocol}://${location.host}/ws/${username}`)
 
