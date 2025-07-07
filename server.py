@@ -1,10 +1,10 @@
-from fastapi import FastAPI, HTTPException, Request, WebSocket
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import date
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import uvicorn #server to run this web
 import psycopg #database
@@ -40,7 +40,7 @@ app.mount("/media", StaticFiles(directory="media"), name="media")
 if not os.path.exists("media"):
     os.makedirs("media")
 
-#conn = sqlite3.connect('users.db', check_same_thread=False)
+
 conn = psycopg.connect(os.getenv("DATABASE_URL"))
 db = conn.cursor()
 
@@ -54,6 +54,19 @@ db.execute("""
 db.execute("CREATE TABLE IF NOT EXISTS relations (user1 TEXT, user2 TEXT, status TEXT, date TEXT)")
 db.execute("CREATE TABLE IF NOT EXISTS recent_chats (user1 TEXT, user2 TEXT, last_opened TEXT)")
 db.execute("CREATE TABLE IF NOT EXISTS messages (id SERIAL PRIMARY KEY, sender TEXT, receiver TEXT, type TEXT DEFAULT 'text', message TEXT, time TEXT)")
+db.execute("""
+  CREATE TABLE IF NOT EXISTS presence_status 
+(
+  username TEXT PRIMARY KEY,
+  is_online BOOLEAN DEFAULT FALSE,
+  last_seen TEXT,
+  current_chat_with TEXT,
+
+  friend TEXT,
+  last_seen_in_chat TEXT
+)
+  """)
+
 
 conn.commit()   
     
@@ -131,7 +144,28 @@ async def websocket_endpoint(websocket: WebSocket, username: str):
     finally:
         if username in active_connections:
           active_connections.pop(username, None)
-            
+    
+@app.get("/status")
+def status_request(request: Request, status: str):
+    username = request.cookies.get("username")
+    time_now = datetime.now(ZoneInfo("Asia/Kolkata"))
+    last_seen = time_now.strftime("%d/%m/%Y %I:%M/%p")
+    data = db.execute("SELECT last_seen FROM presence_status WHERE username = %s", (username,)).fetchone()
+    
+    if status == "online":
+      db.execute("UPDATE presence_status SET is_online = TRUE, last_seen = %s WHERE username = %s", (username, last_seen))
+      return JSONResponse(status_code=200, content={"success":True, "message": f"{username} is online"})
+    elif status == "offline":
+        time_now = datetime.now(ZoneInfo("Asia/Kolkata"))
+        time_iso = time_now.strftime("%d/%m/%Y %I:%M/%p")
+        db.execute("UPDATE presence_status SET is_online = FALSE, last_seen = %s WHERE username = %s", (time_iso, username,))
+        return JSONResponse(status_code=200, content={"success": True, "message": f"{username} is offline"})
+
+@app.get("/get-status")
+def get_status(friend: str):
+    data = db.execute("SELECT * FROM presence_status WHERE username = %s", (friend,)).fetchone()
+    return JSONResponse(status_code=200, content={"success": True, "message": data})
+    
 @app.get("/get-messages")
 def get_messages(request: Request, friend: str, offset: int = 0):
     username = request.cookies.get("username")
@@ -193,10 +227,9 @@ async def signup(data: SignUpRequest):
         return {"message": "Email already exists"}
 
     db.execute("INSERT INTO users (username, password, email) VALUES (%s, %s, %s)", (username, password, email))
+    db.execute("INSERT INTO presence_status (username) VALUES (%s)", (username,))
     conn.commit()
     all_users = db.execute("SELECT * FROM users").fetchall()
-    with open("users.json", "w") as f:
-        json.dump([{"username": u[0], "password": u[1], "email": u[2]} for u in all_users], f, indent=4)
 
     response = RedirectResponse(url=f"/{username}", status_code=302)
     response.set_cookie(key="username", value=username, httponly=False)

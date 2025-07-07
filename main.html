@@ -252,10 +252,11 @@
   <path stroke-linecap="round" stroke-linejoin="round"
     d="M3 9.75L12 3l9 6.75M4.5 10.5v9.75h15V10.5" />
     </svg></div>
-    <div><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-  stroke-width="1.5" stroke="#FFD700" class="friends-icon">
-  <path stroke-linecap="round" stroke-linejoin="round"
-    d="M17 20v-2a4 4 0 0 0-3-3.87M7 20v-2a4 4 0 0 1 3-3.87M12 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM20 8a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM4 8a2 2 0 1 0 4 0 2 2 0 0 0-4 0z" />
+    <div><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#FFD700" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="friends-icon">
+  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+  <circle cx="9" cy="7" r="4"/>
+  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
     </svg></div>
     <div><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
   stroke-width="1.5" stroke="#FFD700" class="profile-icon">
@@ -264,9 +265,18 @@
     </svg></div>
   </div>
   
-    
+ 
+  
 </body>
+<script type="module"> import {appendRecentChatUsers} from "/router/appendUser.js";
+  appendRecentChatUsers()
+</script>
+
 <script>
+  window.addEventListener("beforeunload", () => {
+  navigator.sendBeacon("/status?status=offline")
+})
+  
   fetch("/cookies", {
     method: "GET",
     headers: {"Content-Type": "application/json"},
@@ -282,7 +292,7 @@
 
       const path = window.location.pathname;
       const segments = path.split("/").filter(Boolean);
-
+      connectSocket(username)
 
   if (segments.length === 2) {
     // /username/friend
@@ -295,116 +305,128 @@
   }
     })
   .catch(error => console.log(`error ${error}`))
+  setInterval(() => {
+    
+  if (!socket || socket.readyState === WebSocket.CLOSED) {
+    connectSocket(username); // Try reconnect
+  }
+}, 1000); // Every 5s
+  
   appendRecentChatUsers()
   
   function appendRecentChatUsers() {
-    fetch(`/get-recent-chats`, {
-      method: "GET",
-      headers: {"Content-Type": "application/json"}
-    }).then(res => res.json())
-    .then(data => {
-      if (data.recent_chats.length > 0) {
-        const emptyState = document.getElementById("empty-state")
-        if (emptyState) {
-          pageContent.removeChild(emptyState)
-        }
-        data.recent_chats.forEach(userObj => {
-          let chats = document.createElement("div")
-          chats.className = "chat-users"
-          chats.textContent = userObj[1]
-          pageContent.appendChild(chats)
-          chats.addEventListener("click", () => {
-            clearPage()
-            renderChatInterface(null, userObj[1])
-          })
-          
-          chats.addEventListener("touchstart", () => {
-        holdTimer = setTimeout(() => { 
-        const existingChatActions = document.querySelector(".chat-actions")
-        if (existingChatActions) {pageContent.removeChild(existingChatActions)}
-        chats.style.backgroundColor = "#1A1C23"
-          topNav = document.querySelector(".top-nav")
-          topNav.style.display = "none"
-          chatActions = document.createElement("div")
-          chatActions.className = "chat-actions"
-          removeChat = document.createElement("svg")
-          removeChat.style.marginRight = ""
-          removeChat.style.fontSize = "40px"
-          removeChat.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
-     fill="none" viewBox="0 0 24 24" stroke="#FFD700" stroke-width="1.5" 
-     stroke-linecap="round" stroke-linejoin="round">
-  <path d="M21 8v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8" />
-  <polyline points="3 6 12 13 21 6" />
-</svg>`
-          deleteChat = document.createElement("svg")
-         deleteChat.style.marginLeft = "auto"
-          deleteChat.style.fontSize = "40px"
-          deleteChat.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-     viewBox="0 0 24 24" stroke="#FFD700" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M3 6h18" />
-  <path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" />
-  <path d="M10 11v6" />
-  <path d="M14 11v6" />
-  <path d="M5 6l1-2h12l1 2" />
-</svg>`
-          backIcon = document.createElement("svg")
-          backIcon.style.fontSize = "40px"
-          backIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-     viewBox="0 0 24 24" stroke="#FFD700" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M15 18l-6-6 6-6" />
-</svg>`
-          friend = document.createElement("h1")
-          friend.textContent = userObj[1]
-          friend.style.fontSize = "20px"
+      fetch(`/get-recent-chats`, {
+        method: "GET",
+        headers: {"Content-Type": "application/json"}
+      }).then(res => res.json())
+      .then(data => {
+        if (data.recent_chats.length > 0) {
+          const emptyState = document.getElementById("empty-state")
+          if (emptyState) {
+            pageContent.removeChild(emptyState)
+          }
+          data.recent_chats.forEach(userObj => {
+            let chats = document.createElement("div")
+            chats.className = "chat-users"
+            chats.textContent = userObj[1]
+            pageContent.appendChild(chats)
+            chats.addEventListener("click", () => {
+              clearPage()
+              renderChatInterface(null, userObj[1])
+            })
 
-          backIcon.addEventListener("click", () => {
-            pageContent.removeChild(chatActions)
-            topNav.style.display = "flex"
-          })
-          removeChat.addEventListener("click", () => {
-            fetch("/remove-recent-chats", {
-              method: "POST",
-              headers: {"Content-Type": "application/json"},
-              body: JSON.stringify({"friend": userObj[1]})
-            }).then(res => res.json()).then(data => {
-                if (data.success) {
-                  pageContent.removeChild(chats)
-                }
-            }) //end of data
-            .catch(error => console.log(error))
-          }) //end of removeChatEvent
-          chatActions.appendChild(backIcon)
-          chatActions.appendChild(friend)
-          chatActions.appendChild(deleteChat)
-          chatActions.appendChild(removeChat)
-          pageContent.prepend(chatActions)
-          
-  }, 500) //end of setTimeout
-          }) //end of chatsEvent hold
-          chats.addEventListener("touchend", () => {
-            clearTimeout(holdTimer)
-            chats.style.backgroundColor = ""
-          })
-          chats.addEventListener("touchmove", () => {
-            clearTimeout(holdTimer)
-            chats.style.backgroundColor = ""
-          })
-          
-            
-        }) //end of forEach
-      } //end of if
-    }).catch(error => console.log(`error ${error}`))
-    
-  }
+            chats.addEventListener("touchstart", () => {
+          holdTimer = setTimeout(() => { 
+          const existingChatActions = document.querySelector(".chat-actions")
+          if (existingChatActions) {pageContent.removeChild(existingChatActions)}
+          chats.style.backgroundColor = "#1A1C23"
+            topNav = document.querySelector(".top-nav")
+            topNav.style.display = "none"
+            chatActions = document.createElement("div")
+            chatActions.className = "chat-actions"
+            removeChat = document.createElement("svg")
+            removeChat.style.marginRight = ""
+            removeChat.style.fontSize = "40px"
+            removeChat.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" 
+       fill="none" viewBox="0 0 24 24" stroke="#FFD700" stroke-width="1.5" 
+       stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 8v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8" />
+    <polyline points="3 6 12 13 21 6" />
+  </svg>`
+            deleteChat = document.createElement("svg")
+           deleteChat.style.marginLeft = "auto"
+            deleteChat.style.fontSize = "40px"
+            deleteChat.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+       viewBox="0 0 24 24" stroke="#FFD700" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 6h18" />
+    <path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" />
+    <path d="M10 11v6" />
+    <path d="M14 11v6" />
+    <path d="M5 6l1-2h12l1 2" />
+  </svg>`
+            backIcon = document.createElement("svg")
+            backIcon.style.fontSize = "40px"
+            backIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+       viewBox="0 0 24 24" stroke="#FFD700" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M15 18l-6-6 6-6" />
+  </svg>`
+            friend = document.createElement("h1")
+            friend.textContent = userObj[1]
+            friend.style.fontSize = "20px"
+
+            backIcon.addEventListener("click", () => {
+              pageContent.removeChild(chatActions)
+              topNav.style.display = "flex"
+            })
+            removeChat.addEventListener("click", () => {
+              fetch("/remove-recent-chats", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({"friend": userObj[1]})
+              }).then(res => res.json()).then(data => {
+                  if (data.success) {
+                    pageContent.removeChild(chats)
+                  }
+              }) //end of data
+              .catch(error => console.log(error))
+            }) //end of removeChatEvent
+            chatActions.appendChild(backIcon)
+            chatActions.appendChild(friend)
+            chatActions.appendChild(deleteChat)
+            chatActions.appendChild(removeChat)
+            pageContent.prepend(chatActions)
+
+    }, 500) //end of setTimeout
+            }) //end of chatsEvent hold
+            chats.addEventListener("touchend", () => {
+              clearTimeout(holdTimer)
+              chats.style.backgroundColor = ""
+            })
+            chats.addEventListener("touchmove", () => {
+              clearTimeout(holdTimer)
+              chats.style.backgroundColor = ""
+            })
+
+
+          }) //end of forEach
+        } //end of if
+      }).catch(error => console.log(`error ${error}`))
+
+    }
+  
   function clearPage() {
     pageContent.innerHTML = ""
   }
-  function connectSocket(username, friendUsername) {
+  function connectSocket(username, friendUsername=null) {
     let protocol = location.protocol === "https:" ? "wss" : "ws"
     socket = new WebSocket(`${protocol}://${location.host}/ws/${username}`)
 
     socket.onopen = () => {
-      console.log("socket connected")
+      fetch("/status?status=online")
+      .then(res => res.json())
+      .then(data => {
+        console.log(data)
+      })
     }
     socket.onmessage = (event) => {
       const receivedMessage = JSON.parse(event.data)
@@ -419,9 +441,39 @@
     }
     socket.onclose = () => {
       console.log("socket closed")
+      fetch("/status?status=offline")
+      .then(res => res.json())
+      .then(data => {
+        console.log(data)
+      })
     }
-  } 
+  }
+
+  function addTimeStamp(previousTimestamp, currentTimeStamp) {
+    console.log("")
+  }
+  addTimeStamp("03/06/2025 12:48/AM", "03/06/2025 12:49/AM")
+  
   function renderChatInterface(e = null, friendUsernameFromURL = null) {
+    showStatus = document.createElement("div")
+    showStatus.style.color = "#FFD700"
+    showStatus.style.fontSize = "10px"
+    if (statusInterval) clearInterval(statusInterval)
+  statusInterval = setInterval(() => {
+    fetch(`/get-status?friend=${encodeURIComponent(friendUsernameFromURL)}`)
+    .then(res => res.json())
+    .then(data => {
+      console.log(data)
+      
+      
+      if (data.message[1]) {
+        showStatus.textContent = "Online"
+        } else {
+        showStatus.textContent = `last seen at ${data.message[2]}`
+        }
+      
+    })
+  }, 4000)
     fetch(`/get-messages?friend=${encodeURIComponent(friendUsernameFromURL)}`, {
       method: "GET",
       headers: {"Content-Type": "application/json"}
@@ -445,16 +497,16 @@
         }
       }, 100)
     }).catch(error => console.log(`error ${error}`))
-    try {
-      connectSocket(username, friendUsernameFromURL) }
-    catch (error) {console.log(error)}
     
     let upperNav = document.createElement("div")
     upperNav.className = "upperNav"
     
     let friendUsername = e ? e.currentTarget.getAttribute("data-username") : friendUsernameFromURL
     history.pushState({}, "", `/${username}/${friendUsername}`)
-      
+    let nameStatus = document.createElement("div")
+    nameStatus.style.display = "flex"
+    nameStatus.style.flexDirection = "column"
+    
     let backButton = document.createElement("div")
     backButton.textContent = "Back"
     backButton.style.cursor = "pointer"
@@ -464,6 +516,7 @@
           
     let friendname = document.createElement("h1")
     friendname.textContent = friendUsername
+    friendname.style.margin = "1px"
 
     let album = document.createElement("div")
     album.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" stroke="#FFD700" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
@@ -535,7 +588,10 @@
     // First append all elements to the DOM
     pageContent.appendChild(upperNav)
     upperNav.appendChild(backButton)
-    upperNav.appendChild(friendname)
+    
+    nameStatus.appendChild(friendname)
+    nameStatus.appendChild(showStatus)
+    upperNav.appendChild(nameStatus)
     pageContent.appendChild(chatMessages)
     bottomNav.appendChild(album)
     bottomNav.appendChild(messageBar)
@@ -548,6 +604,9 @@
       clearPage()
       history.pushState({}, "", `/${username}`)
       pageContent.innerHTML = pageContentHome
+      const topNav = document.querySelector(".top-nav")
+      if (topNav) topNav.style.display = "flex"
+      if (statusInterval) clearInterval(statusInterval)
       appendRecentChatUsers()
     })
 
@@ -1068,6 +1127,8 @@
   let socket = null;
   let chatMessages = null;
   let topNav = document.querySelector(".top-nav")
+  let previousTimestamp = null
+  let statusInterval = null
   profileIcon.addEventListener("click", () => {
     
     page = "profile"
